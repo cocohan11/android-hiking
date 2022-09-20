@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.example.iamhere">
+    <!-- 권한 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- 앨범 보기,사용 -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- 대략적인 위치 권한(for 네이버지도) -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> <!-- queries에 카카오톡 패키지 추가 -->
+    <queries>
+        <package android:name="com.kakao.talk" />
+    </queries>
+
+    <application
+        android:name=".GlobalApplication"
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Iamhere"
+        android:usesCleartextTraffic="true"
+        tools:targetApi="m">
+        <activity
+            android:name=".R_record_sharing_show_list"
+            android:exported="false" />
+        <activity
+            android:name=".M_share_3_join_Map"
+            android:exported="true" />
+        <activity
+            android:name=".R_record_sharing_mapMark"
+            android:exported="false" />
+        <activity
+            android:name=".R_record_sharing"
+            android:exported="false" />
+        <activity
+            android:name=".M_share_2_Map"
+            android:exported="true"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".M_share_1_2join"
+            android:exported="true" />
+        <activity
+            android:name=".M_share_1_1create"
+            android:exported="false" />
+        <activity
+            android:name=".M_share_1"
+            android:exported="false" /> <!-- android:name=".L_login" -->
+        <!-- 카카오에서 받아온 앱 키를 설정할메타데이터 -->
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="kakao45268cd1f4853c061305952aadd29a90" />
+        <meta-data
+            android:name="com.naver.maps.map.CLIENT_ID"
+            android:value="4grcvy3tqx" /> <!-- 네이버지도 클라이언트ID를 지정할 메타데이터 -->
+        <activity
+            android:name=".R_mypage"
+            android:exported="false" />
+        <activity
+            android:name=".S_pwChg"
+            android:exported="false" />
+        <activity
+            android:name=".L_PwReissue"
+            android:exported="false" />
+        <activity
+            android:name=".S_account"
+            android:exported="false" /> <!-- http도 사용할 수 있게 해줌. 나의 웹주소가 https가 아니라서 추가함. -->
+        <!-- 아래부터 첫 화면 -->
+        <activity
+            android:name=".L_profile"
+            android:exported="true" />
+        <activity
+            android:name=".M_main"
+            android:exported="true" />
+        <activity
+            android:name=".L_join"
+            android:exported="true" />
+        <activity
+            android:name=".L_login"
+            android:exported="true">
+
+            <!-- 첫 액티비티를 여기로 하겠다 -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!-- 카카오 공유 클릭하면 입장하는 곳을 여기로 하겠다 -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- "kakao{YOUR_NATIVE_APP_KEY}://kakaolink" 형식의 앱 실행 스킴을 설정하는데 사용 -->
+                <data
+                    android:host="kakaolink"
+                    android:scheme="kakao45268cd1f4853c061305952aadd29a90" />
+            </intent-filter>
+        </activity> <!-- Redirect URI: redirect URL에 접근하기위한 activity 생성. 계속하기 안 눌리는 에러의 원인(인가코드를받기위함) -->
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Redirect URI: "kakao{NATIVE_APP_KEY}://oauth" -->
+                <data
+                    android:host="oauth"
+                    android:scheme="kakao45268cd1f4853c061305952aadd29a90" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

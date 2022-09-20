@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/box_border_black"
+    android:layout_margin="5dp"
+    android:orientation="horizontal">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/CardView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardBackgroundColor="#FFFFFF"
+        app:cardUseCompatPadding="true">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+            <ImageView
+                android:padding="1dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/mountain"
+                android:id="@+id/iv_mapCapture"
+                android:layout_width="match_parent"
+                android:layout_height="120dp" />
+
+            <TextView
+                android:id="@+id/tv_roomName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10sp"
+                android:layout_marginTop="5dp"
+                android:text="모여라~"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+            <TextView
+                android:id="@+id/tv_address"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10sp"
+                android:text="서울 특별시 동작구"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+            <TextView
+                android:id="@+id/tv_startEndTime"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10sp"
+                android:text="2022.3.18  13:36 ~ 2022.3.18  18:00"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/black" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" >
+                <TextView
+                    android:layout_weight="2"
+                    android:id="@+id/tv_sharingTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="10sp"
+                    android:text="소요 시간 : 4시간 23분"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:textColor="#FF8535" />
+                <Button
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginBottom="4dp"
+                    android:id="@+id/btn_showList"
+                    android:layout_marginEnd="10dp"
+                    android:layout_width="100dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="right"
+                    android:text="참여자 (n명)"
+                    android:textSize="15sp"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:backgroundTint="#DAD8D8" />
+            </LinearLayout>
+        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="13dp"
+            android:text="  ←"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="17sp"
+            android:layout_gravity="center_vertical|right"
+            android:background="@drawable/round3"
+            />
+    </androidx.cardview.widget.CardView>
+</FrameLayout>
+

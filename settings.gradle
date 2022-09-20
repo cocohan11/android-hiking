@@ -1,0 +1,21 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+//        maven{ url "https://maven.google.com" }
+        //네이버 지도 sdk는 https://naver.jfrog.io/artifactory/maven/ 메이븐 저장소에서 배포된다. 루트 프로젝트의 build.gradle에 저장소 설정을 추가한다.
+        maven { url 'https://devrepo.kakao.com/nexus/content/groups/public/' } //카카오로그인
+        maven { url 'https://naver.jfrog.io/artifactory/maven/' } //네이버 지도
+    }
+}
+rootProject.name = "iamhere"
+include ':app'

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_margin="20dp"
+    tools:context=".R_record_sharing_show_list">
+
+    <TextView
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="같이 등산한 사람"
+        android:layout_marginBottom="10dp"
+        android:textColor="@color/black"
+        android:textSize="25sp"
+        android:paddingBottom="10dp"
+        android:textStyle="bold"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:background="@drawable/chat_round_gray"
+        android:id="@+id/rv_record_list2"
+        android:layout_width="match_parent"
+        android:layout_height="450dp"
+        android:padding="15dp"/>
+
+    <Button
+        android:id="@+id/btn_record_list_ok"
+        android:layout_marginTop="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:textSize="22sp"
+        android:backgroundTint="#31BF22"
+        android:text="확인" />
+
+
+
+</LinearLayout>

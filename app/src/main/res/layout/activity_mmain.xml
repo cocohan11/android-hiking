@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".M_main"
+    android:orientation="vertical">
+
+    <com.naver.maps.map.MapView
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/imageView2"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintEnd_toEndOf="@+id/circle_btn_sharing"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/circle_btn_sharing"
+            app:layout_constraintTop_toBottomOf="@+id/circle_btn_sharing"
+            app:srcCompat="@drawable/circle_green_safe" />
+
+        <ImageView
+            android:id="@+id/circle_btn_sharing"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.044"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.305"
+            app:srcCompat="@drawable/circle_green_text" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.naver.maps.map.MapView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:background="#D6D4D4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" >
+
+        <LinearLayout
+            android:id="@+id/navi_map"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                app:srcCompat="@drawable/ic_home" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1.7"
+                android:textColor="@color/black"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:layout_gravity="center"
+                android:text="지도"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navi_myPlace"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                app:srcCompat="@drawable/ic_account" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1.7"
+                android:textColor="@color/black"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:layout_gravity="center"
+                android:text="나의 공간"/>
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/navi_setting"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_gravity="center"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                app:srcCompat="@drawable/ic_setting" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_weight="1.7"
+                android:textColor="@color/black"
+                android:paddingStart="15dp"
+                android:paddingEnd="15dp"
+                android:layout_gravity="center"
+                android:text="설정"/>
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

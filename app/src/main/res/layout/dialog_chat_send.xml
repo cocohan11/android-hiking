@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/linear_chat"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="230dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#D9D8D8"
+    android:padding="5dp"
+    >
+
+    <TextView
+        android:id="@+id/sureDelete"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="친구들에게 보낼 메세지를 입력하세요"
+        android:textColor="@color/black"
+        android:textSize="13sp"
+        android:textStyle="bold"/>
+    <EditText
+        android:id="@+id/et_chat_msg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:background="@drawable/text_round_white"
+        android:textSize="14sp"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="7dp"
+        android:layout_marginRight="7dp"
+        android:paddingStart="10dp"
+        android:padding="2sp"
+        android:hint="14자 이내"
+        android:maxLength="14"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btn_chat_nope"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:text="취소"
+            android:backgroundTint="#D9D8D8"
+            android:textColor="@color/black"
+            />
+
+        <Button
+            android:id="@+id/btn_chat_send"
+            android:layout_width="match_parent"
+            android:layout_weight="1"
+            android:layout_height="36dp"
+            android:backgroundTint="#D9D8D8"
+            android:textColor="@color/black"
+            android:text="보내기"
+            tools:layout_editor_absoluteX="236dp"
+            tools:layout_editor_absoluteY="66dp" />
+    </LinearLayout>
+</LinearLayout>

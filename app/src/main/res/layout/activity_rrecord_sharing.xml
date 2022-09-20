@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".R_record_sharing"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="#D9D8D8"
+        android:gravity="center"
+        android:text="나의 위치공유 참여 기록"
+        android:textColor="#000000"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" >
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_height="30dp"
+            android:layout_width="120dp"
+            android:layout_marginTop="10dp"
+            android:layout_centerHorizontal="true"
+            />
+        <Spinner
+            android:layout_marginLeft="10dp"
+            android:id="@+id/spinner2"
+            android:layout_height="30dp"
+            android:layout_width="120dp"
+            android:layout_marginTop="10dp"
+            android:layout_centerHorizontal="true"
+            />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <TextView
+            android:visibility="gone"
+            android:id="@+id/tv_notFound"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="조회된 기록이 없습니다."
+            android:gravity="center"
+            android:textSize="18sp" />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview3"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+</LinearLayout>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">iamhere</string>
+    <string name="kakao_app_key">45268cd1f4853c061305952aadd29a90</string> <!-- 카카오로그인 api 네이티브 앱 키-->
+</resources>

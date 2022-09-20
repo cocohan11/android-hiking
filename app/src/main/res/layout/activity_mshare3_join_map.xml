@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".M_share_3_join_Map">
+
+
+    <com.naver.maps.map.MapView
+        android:id="@+id/map3"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
+
+        <FrameLayout
+            android:id="@+id/frameLayout6"
+            android:layout_width="409dp"
+            android:layout_height="35dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/textView20"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#D9D8D8"
+                android:gravity="center_vertical"
+                android:paddingStart="60dp"
+                android:text="방이름(nn명)"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/back_join3"
+                android:layout_width="60dp"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_chevron_left" />
+
+            <TextView
+                android:id="@+id/refresh3"
+                android:layout_width="100dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="right"
+                android:background="#D9D8D8"
+                android:gravity="center"
+                android:text="새로고침"
+                android:textColor="#000000"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/fold3"
+                android:layout_width="80dp"
+                android:layout_height="40dp"
+                android:background="#DCD9D9"
+                android:gravity="center"
+                android:text="^"
+                android:textColor="@color/black"
+                android:textSize="30sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toTopOf="@+id/showRecyclerview2"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/showRecyclerview2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_list2"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:background="#DCD9D9"
+                android:paddingBottom="80dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <Chronometer
+                android:id="@+id/chronometer3"
+                android:layout_width="200dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="156dp"
+                android:gravity="center"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/rv_list2" />
+
+            <Button
+                android:id="@+id/btn_share_Friends3"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="28dp"
+                android:layout_marginTop="36dp"
+                android:backgroundTint="#F6C40F"
+                android:text="카카오톡 공유하기"
+                android:textColor="@color/black"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/chronometer3" />
+
+            <Button
+                android:id="@+id/btn_share_exit3"
+                android:layout_width="170dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="36dp"
+                android:layout_marginEnd="25dp"
+                android:text="퇴장"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toEndOf="@+id/btn_share_Friends3"
+                app:layout_constraintTop_toTopOf="@+id/chronometer3" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+            <TextView
+                android:id="@+id/routeNum3"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/round"
+                android:gravity="center"
+                android:text="1"
+                android:visibility="gone"
+                android:textColor="@color/black"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.958"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <ImageView
+                android:id="@+id/iv_sendMSG"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="156dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.961"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/circle_green_message" />
+
+            <ImageView
+                android:id="@+id/iv_setting"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="@+id/iv_sendMSG"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/iv_sendMSG"
+                app:layout_constraintTop_toBottomOf="@+id/iv_sendMSG"
+                app:srcCompat="@drawable/circle_green_setting" />
+
+            <ImageView
+                android:visibility="gone"
+                android:id="@+id/iv_compass"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="@+id/iv_sendMSG"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toStartOf="@+id/iv_sendMSG"
+                app:layout_constraintTop_toBottomOf="@+id/iv_setting"
+                app:srcCompat="@drawable/circle_green_compass" />
+
+            <ImageView
+                android:id="@+id/marker_img2"
+                android:visibility="gone"
+                android:layout_width="60sp"
+                android:layout_height="60sp"
+                android:layout_marginTop="296dp"
+                android:gravity="center"
+                android:src="@drawable/pin_brown"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.954"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_chat_member"
+                android:layout_width="320dp"
+                android:layout_height="100dp"
+                android:layout_gravity="right"
+                android:layout_marginTop="38dp"
+                android:layout_marginEnd="5dp"
+                android:background="@drawable/chat_round_gray"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="1.0"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </com.naver.maps.map.MapView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

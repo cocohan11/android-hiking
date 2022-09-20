@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:id="@+id/linearM"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    >
+
+    <TextView
+        android:id="@+id/sureDelete"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="삭제하시겠습니까?"
+        android:textColor="@color/black"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/button_del"
+            android:layout_margin="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="삭제"
+            tools:layout_editor_absoluteX="88dp"
+            tools:layout_editor_absoluteY="65dp" />
+
+        <Button
+            android:id="@+id/button2_cancel"
+            android:layout_margin="5dp"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:text="취소"
+            tools:layout_editor_absoluteX="236dp"
+            tools:layout_editor_absoluteY="66dp" />
+    </LinearLayout>
+</LinearLayout>
