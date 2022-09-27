@@ -19,7 +19,7 @@ import static com.example.iamhere.L_login.소켓통신목적;
 import static com.example.iamhere.L_login.위도;
 import static com.example.iamhere.M_share_2_Map.createOkHttpClient;
 import static com.example.iamhere.M_share_2_Map.retrofit객체;
-import static com.example.iamhere.M_share_2_Map.socketClose_Exit;
+import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.M_share_2_Map.마커프사null이면set하기;
 import static com.example.iamhere.M_share_2_Map.방퇴장처리;
 
@@ -333,7 +333,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
         list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, 방장닉넴);
 
         위치공유방.sharingList_AND_chat_rv_Adapter장착(rv_chat, adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
-        위치공유방.소켓연결(iv_sendMessage, showRecyclerview2, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
+        위치공유방.소켓연결(iv_sendMessage, showRecyclerview2, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
                 handler2, adapter, chat_items, rv_chat, getApplicationContext(), M_share_3_join_Map.this, tv_방이름_인원, marker_img, isRun, 네이버Map,
                 clientList, list_adapter, rv_list, chronometer);
 

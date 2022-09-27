@@ -46,7 +46,9 @@ import com.naver.maps.map.NaverMap;
 import com.naver.maps.map.overlay.Marker;
 import com.naver.maps.map.overlay.OverlayImage;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -93,6 +95,8 @@ public class L_login extends AppCompatActivity {
     static public ArrayList<Double> 마커경도리스트 = new ArrayList<>(); //2차배열이 제일 좋긴한데 retrofit으로할거고, 할 수 있는 만큼 속도내자
     //채팅
     static public Socket socket; //서버와 연결될 소켓
+    static public BufferedReader br; //서버와 연결될 소켓
+    static public PrintWriter pw; //서버와 연결될 소켓
     static public final int port = 8888;
     static final String ip = "192.168.0.22"; // 2학원 ip주소
 //    static final String ip = "192.168.0.155"; // 3학원 ip주소

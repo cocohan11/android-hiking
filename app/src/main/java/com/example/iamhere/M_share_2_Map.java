@@ -25,6 +25,7 @@ import static com.example.iamhere.L_login.mySmallBitmapImg;
 import static com.example.iamhere.L_login.mysnsLogin;
 import static com.example.iamhere.L_login.port;
 import static com.example.iamhere.L_login.socket;
+import static com.example.iamhere.L_login.pw;
 import static com.example.iamhere.L_login.마커위도리스트;
 import static com.example.iamhere.L_login.마커경도리스트;
 import static com.example.iamhere.L_login.myRoomActive;
@@ -40,6 +41,7 @@ import static com.example.iamhere.L_login.bitmapCapture;
 import static com.example.iamhere.M_main.StringToBitmap;
 import static com.example.iamhere.M_main.URLtoBitmap;
 import static com.example.iamhere.M_share_3_join_Map.retrofit_퇴장업뎃_exit;
+import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -84,6 +86,8 @@ import com.example.iamhere.Model.Markers_Players;
 import com.example.iamhere.Model.Sharing_room;
 import com.example.iamhere.Recyclerview.chat_Adapter;
 import com.example.iamhere.Recyclerview.sharingList_Adapter;
+import com.example.iamhere.socket.ClientReceiver;
+import com.example.iamhere.socket.ClientSender;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
@@ -235,7 +239,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         // 소요시간 위젯 : 시작점과의 차이를 초마다 set해준다.  //기본 변수 준비
         //ㅡㅡㅡㅡㅡㅡㅡㅡ
         SharedPreferences shared = getSharedPreferences("stopwatch", Activity.MODE_PRIVATE); //저장해둔 값 불러오기
-        시작한시점 = shared.getLong("시작한시점", 0); //뷰에 보이는 시간, 이 변수로 운동시작했는지 구분함
+//        시작한시점 = shared.getLong("시작한시점", 0); //뷰에 보이는 시간, 이 변수로 운동시작했는지 구분함
         chronometer.setText("경과시간 00:00:00"); //3단계에서 처음 보이는 상태
 
 //        // DB에 명단 추가 (방업뎃, 명단추가, 운동시작시간 추가)
@@ -259,23 +263,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 time = System.currentTimeMillis() - chronometer.getBase(); //지나온 초는 고정
                 Log.e("time : ", String.valueOf(time));
 
-                주어진시간 = 300000; //30초라고 한다면 30000 milliseconds
+//                주어진시간 = 300000; //30초라고 한다면 30000 milliseconds
                 String t = 시분초변환(); // "경과시간 00:00:12" 따위를 리턴받는다
-
-                //시간이 지나 강제종료
-//                if(t.equals("종료")) { //일정시간이 지나므로 종료된다.
-//
-//
-//                    Log.e("onChronometerTick - h시간m분s초 : ", h시간m분s초);
-////                    SharedPreferences.Editor editor = shared.edit();
-//                    retrofit_퇴장업뎃_removeRoom(h시간m분s초); //서버에 방 비활성화, 시간들 저장
-//                    방퇴장처리(getApplicationContext()); //퇴장 후 뒷처리 : 변수, 쉐어드 초기화
-//                    isRun = false;
-//
-//                    Toast.makeText(getApplicationContext(), "종료되었습니다.", Toast.LENGTH_SHORT).show(); // 실행할 코드
-//                    t = "경과시간 00:00:00"; //종료되는 찰나에 이상하게 보여서 대입해줌
-//                }
-//                chronometer.setText(t);
 
             }
         });
@@ -449,543 +438,6 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
     } //~onCreate()
 
-
-    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-    // 메시지를 전송하는 Thread
-    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-    class ClientSender extends Thread {
-
-//        private DataOutputStream dos; // 데이터를 스트림통로를 통해 보낼 것이다.
-        private PrintWriter pw;
-//        private DataOutputStream dos; // 데이터를 스트림통로를 통해 보낼 것이다.
-        private String name;
-        private ImageView iv_sendMSG, btn_trackingStart;
-        private ConstraintLayout showRV;
-        private TextView fold;
-        private Dialog dialog_chat, dialog_leave;
-        private EditText et_chat_msg;
-        private Button btn_chat_send, btn_chat_nope, btn_share_exit;
-        private Handler handler;
-        private Context context, activity;
-        private boolean isRun;
-        private ArrayList<ClientInfo> clientList;
-
-
-        // 생성자. 방장과 참여자 두 곳에서 사용 됨
-        public ClientSender(ImageView iv_sendMSG, ConstraintLayout showRV, TextView fold, Dialog dialog_chat, Dialog dialog_leave,
-                            EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
-                            Handler handler, Context context, Context activity, boolean isRun, ArrayList<ClientInfo> clientList) {
-
-            this.iv_sendMSG = iv_sendMSG;
-            this.showRV = showRV;
-            this.fold = fold;
-            this.dialog_chat = dialog_chat;
-            this.dialog_leave = dialog_leave;
-            this.et_chat_msg = et_chat_msg;
-            this.btn_chat_send = btn_chat_send;
-            this.btn_chat_nope = btn_chat_nope;
-            this.btn_share_exit = btn_share_exit;
-            this.btn_trackingStart = btn_trackingStart;
-            this.handler = handler;
-            this.context = context;
-            this.activity = activity;
-            this.isRun = isRun;
-            this.clientList = clientList;
-
-            try {
-                pw = new PrintWriter(socket.getOutputStream());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-
-
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ 소켓 통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        @Override
-        public void run() { //  this myName : Thread-3
-
-
-            Log.e("ClientSender.class", "run() socket : "+socket);
-            Log.e("ClientSender.class", "유저myName, myRoom_no, 방이름 : "+myName+myRoom_no+방이름);
-            Log.e("ClientSender.class", "isRun : "+isRun);
-            Log.e("ClientSender.class", "clientList : "+clientList);
-            Log.e("ClientSender.class", "위도 : "+위도+"/경도:"+경도);
-
-
-            //시작하자마자 문자3개를 서버로 전송 (1번만)
-            if (!socket.isClosed()) { // 소켓이 열려있다면
-
-                Log.e(TAG, "!socket.isClosed()"); // ok
-
-                pw.println(myEmail); // 이메일로 식별하기
-                pw.println(myName); // 1개만 보내야되네..? --> ㄴㄴ 보낸 순서대로 받으면 됨
-                pw.println(myImg);
-                pw.println(myMarkerImg); // 이 유저의 마커url을 채팅서버에 보내면 소켓으로 입장할 때 전송될거임
-                pw.println(myRoom_no);
-                pw.println(방이름);
-                pw.println(위도); // 입장할 때 위경도 보내기! (기존엔 위치n초뒤에 업뎃할 때 보냈음. 따로할 이유가 없음)
-                pw.println(경도);
-
-                pw.flush();
-
-            }
-
-
-            //ㅡㅡㅡㅡㅡ
-            // UI 작업
-            //ㅡㅡㅡㅡㅡ
-            handler.post(new Runnable() {
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void run() {
-
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                // 메세지보내기 창 : 다이얼로그 창이 뜬다.
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                iv_sendMSG.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-
-
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡ
-                    // 키보드 띄우기
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡ
-                    int rv_visible상태 = showRV.getVisibility(); //메세지보내기 전 상태(상태복구를 위한 변수)
-                    showRV.setVisibility(View.GONE); //지도를 가림
-                    fold.setVisibility(View.GONE); //지도를 가림
-
-                    Log.e(TAG, "메세지보내기 창 띄우기");
-                    Log.e(TAG, "메세지보내기 버튼 클릭 / rv_visible상태 : "+rv_visible상태);
-
-                    dialog_chat.show(); //다이얼로그 띄우기
-                    et_chat_msg.requestFocus(); //입력란을 대상으로
-
-
-                    et_chat_msg.postDelayed(new Runnable() { //이렇게하니까 동작됨. Runnable없이 하려니까 작동하지 않았음
-                        @Override
-                        public void run() {
-
-                            InputMethodManager inputMethodManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE); // InputMethodManager : 키보드제어 클래스
-                            inputMethodManager.showSoftInput(et_chat_msg, InputMethodManager.SHOW_IMPLICIT); //바로 키보드 띄우기
-
-                        }
-                    }, 10); //초는 상관없음
-
-
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                    // 메세지 보내기 버튼
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                    btn_chat_send.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-
-
-                            String message = String.valueOf(et_chat_msg.getText()); //친구에게 보낼 메세지가 담김
-                            Log.e(TAG, "메세지보내기 버튼 클릭 / message : "+message);
-                            Log.e(TAG, "메세지보내기 버튼 클릭 / 위도, 경도 : "+위도+"/"+경도);
-
-
-                            new Thread() { //  this name : Thread-5
-                                public void run() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-                                    Log.e(TAG, "run()에 들어옴");
-
-
-                                    // 메세지 전송
-                                    pw.println(message); // 채팅내용
-                                    pw.flush();
-
-
-                                    dialog_chat.dismiss(); //실행끝났으면 창 꺼지기
-                                    et_chat_msg.setText(""); //빈문자열 넣기
-                                    채팅메세지배경뷰_보임숨김(rv_visible상태, handler, showRV, fold); //참여자 명단 리사이클러뷰 원상복구
-
-
-                                }
-                            }.start();
-
-                        }
-                    });
-
-                    //ㅡㅡㅡㅡㅡㅡ
-                    // 취소 버튼 : 창 사라짐
-                    //ㅡㅡㅡㅡㅡㅡ
-                    btn_chat_nope.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            dialog_chat.dismiss(); //실행끝났으면 꺼지기
-                            et_chat_msg.setText(""); //빈문자열 넣기
-
-                            채팅메세지배경뷰_보임숨김(rv_visible상태, handler, showRV, fold); //참여자 명단 리사이클러뷰 원상복구
-                        }
-                    });
-
-
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                    // 다이얼로그 바깥 클릭 이벤트 : 뷰 숨김, 보임때문에
-                    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                    dialog_chat.setOnCancelListener(
-                        new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialog) {
-
-                                Log.e(TAG, "dialog_chat.setOnCancelListener");
-                                채팅메세지배경뷰_보임숨김(rv_visible상태, handler, showRV, fold); //참여자 명단 리사이클러뷰 원상복구
-
-                            }
-                        }
-                    );
-
-                    }
-                });
-
-                //ㅡㅡㅡㅡ
-                // 방 퇴장 : 같은 방 자동재입장 X (비번입력하면 재입장은 가능하도록 할거임)
-                //ㅡㅡㅡㅡ
-                btn_share_exit.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        Log.e(TAG, "UI 작업... 퇴장 클릭");
-
-
-                        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                        // 다이얼로그   1.방장   2.참여자
-                        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                        if (clientList.get(0).getEmail().equals(myEmail)) { // 방장과 참여자 다이얼로그가 다르게 보이게하기
-                            Log.e(TAG, "방장이 퇴장 버튼 클릭");
-
-
-                            dialog_leave = new AlertDialog.Builder(activity) // 현재 Activity의 이름 입력.
-                                    .setMessage("\n                   방을 종료하시겠습니까?\n")
-                                    .setNeutralButton("모두에 대해 공유 종료", new DialogInterface.OnClickListener() { //확인을 왼쪽에 해야 실수로 더블클릭하는 경우를 막을 수 있음
-                                        public void onClick(DialogInterface dialog, int which){
-
-
-                                            Log.e(TAG, "모두에 대해 공유 종료 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
-                                            Toast.makeText(getApplicationContext(), "위치공유방이 종료되었습니다.\n나의 기록에서 조회하실 수 있습니다.", Toast.LENGTH_LONG).show(); // 실행할 코드
-
-
-                                            new Thread() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-                                                public void run() { // // 메세지 전송하고 소켓끊기
-
-                                                    pw.println("강제종료"); // 채팅내용
-                                                    pw.flush();
-
-                                                }
-                                            }.start();
-
-
-                                            Log.e(TAG, "ClientSender() h시간m분s초 : "+h시간m분s초);
-                                            retrofit_퇴장업뎃_removeRoom(h시간m분s초); // 서버에 방 비활성화, 시간들 저장(시간 null뜸!!)
-                                            방퇴장처리(context); //퇴장 후 뒷처리 : 변수, 쉐어드 초기화
-                                            socketClose_Exit(); // 로그 지저분해서 메소드로 만듦
-                                            isRun = false; // 자기위치 찍기 종료
-                                        }
-                                    })
-
-                                    // 주석 이유 : 방장 양도 기능 구현 취소
-//                                .setNegativeButton("공유 나가기", new DialogInterface.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(DialogInterface dialogInterface, int i) {
-//
-//
-//                                        Log.e(TAG, "공유 나가기 버튼 클릭");
-//                                        Toast.makeText(getApplicationContext(), "퇴장하였습니다.", Toast.LENGTH_SHORT).show(); //퇴장알림을 해야 확신할 듯
-//
-////                                        retrofit_퇴장업뎃_removeRoom(); // 위와 같음
-//                                        retrofit_퇴장업뎃_exit(myRoom_no, myEmail, h시간m분s초);
-//                                        방퇴장처리();
-//                                        socketClose_Exit();
-//
-//
-//                                    }
-//                                })
-                                    .setPositiveButton("       취소       ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
-                                        public void onClick(DialogInterface dialog, int which){
-                                            Log.e(TAG, "취소 버튼 클릭");                }})
-                                    .show();
-
-
-                        } else { // 참여자가 퇴장버튼 누를때 (방장과 별도여야 함)
-
-                            btn_share_exit.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    Log.e(TAG, "참여자가 퇴장 버튼 클릭");
-
-
-                                    dialog_leave = new androidx.appcompat.app.AlertDialog.Builder(activity) // 현재 Activity의 이름 입력.
-                                            .setMessage("\n          정말 나가시겠습니까?\n")
-                                            .setNeutralButton("              예              ", new DialogInterface.OnClickListener() { //확인을 왼쪽에 해야 실수로 더블클릭하는 경우를 막을 수 있음
-                                                public void onClick(DialogInterface dialog, int which){
-
-
-                                                    Log.e(TAG, "참여자가 나가기 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
-                                                    Toast.makeText(context, "위치공유방이 종료되었습니다.\n나의 기록에서 조회하실 수 있습니다.", Toast.LENGTH_SHORT).show(); // 에러 원인 : context를 전달받지 못했음 getapplicationContext쓰면 에러남
-
-
-                                                    new Thread() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-                                                        public void run() { // 메세지 전송하고 소켓끊기
-
-                                                            pw.println("퇴장"); // 채팅내용
-                                                            pw.flush();
-
-                                                        }
-                                                    }.start();
-
-                                                    //명단에 추가가 안 되어있음.. 우선 tcp/ip를 하고 디비를 손대자
-                                                    retrofit_퇴장업뎃_exit(myRoom_no, myEmail, h시간m분s초); //위치공유방 참여자 명단 변경(퇴장시간, 소요시간)
-                                                    방퇴장처리(context); //퇴장 후 뒷처리 : 변수, 쉐어드 초기화
-                                                    socketClose_Exit();
-                                                    isRun = false; // 자기위치 찍기 종료
-                                                    소켓통신목적 = "퇴장"; // M_share_3_join_Map.class에서 퇴장할 때 토스트를 사용하기 위해(2안에서 context파라미터 사용해도 안됨;;)
-                                                    Log.e(TAG, "퇴장 토스트를 띄우기 위한 변수 - 소켓통신목적:"+소켓통신목적); // M3에서 마커스레드 안에서 사용됨.
-
-
-                                                }
-                                            })
-                                            .setPositiveButton("         아니요            ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
-                                                public void onClick(DialogInterface dialog, int which){}})
-                                            .show();
-                                }
-                            });
-                        }
-                    }
-                });
-
-                //ㅡㅡㅡㅡㅡㅡㅡㅡ
-                // 등산 시작버튼 : 누르면 시간이 카운트된다.
-                //ㅡㅡㅡㅡㅡㅡㅡㅡ
-                btn_trackingStart.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-
-                        //방장 진입 단계(activity) 1.방이름   2.마커   3.시작버튼   4.운동중
-                        //中 4단계
-
-                        Log.e(TAG, "btn_trackingStart 버튼 클릭");
-//                        Toast.makeText(getApplicationContext(), "등산을 시작합니다. 안전산행 하세요.", Toast.LENGTH_SHORT).show(); //test toast
-                        숨김_트래킹스타트(); //나머지 뷰는 사용할거라 보이는 채로 냅둠
-                        stopWatch쉐어드저장();
-
-
-                        new Thread() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-                            public void run() { // // 메세지 전송하고 소켓끊기
-
-                            pw.println("운동시작"); // 초시계 시작점을 방장과 참여자가 동일하게 하기위해 전송
-                            pw.flush();
-
-                            }
-                        }.start();
-
-                        //
-                        // 다른 참여자들의 스톱와치가 같이 시작된다.
-                        //
-                        retrofit_Room_RoomUser업뎃(getApplicationContext()); //등산시작했다고 신호를 보내면 현재시간을 DB에 업뎃 //방운동시작시간 =/= 개인운동시작시간 (왜냐면 도중에 들어온사람은?)
-
-                    }
-                });
-
-
-            }
-        });
-
-
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        // 위치 전송 (마커용)
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        while (!socket.isClosed()) { // 채팅방에서 나가도 계속 반복되어서 조건문을 소켓이 열리는경우만으로 바꿈 // 반복문이라 맨 뒤로 뺐음
-
-            try {
-
-
-                Log.e(TAG, "송신...while문"); // try를 나가면 whille문에 의해 계속 반복되어서 찍힌다
-
-                pw.println(String.valueOf(위도) ); // 소수점 7자리네
-                pw.println(String.valueOf(경도) ); // double과 string이 섞여서 서버에서 다른 타입에 담기면 아예 못 담는 문제 발생 -> string으로 변환해서 보냄
-                pw.flush();
-
-
-                Thread.sleep(모든위치업뎃_sec*1000); // n초마다 위치를 전송한다.
-                Log.e(TAG, "송신...while 위도 : "+위도+ ", 경도 : "+경도);
-
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-        } // ~while()
-
-//        Log.e("ClientSender.class", "run() 끝?");
-
-        }
-    } // ~inner class(송신)
-
-    
-
-
-    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-    // 수신용 Thread 클래스
-    //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-    class ClientReceiver extends Thread{
-
-//        private DataInputStream dis;
-        private BufferedReader br;
-        private Handler handler;
-        private ArrayList<Chat> chat_items;
-        private chat_Adapter chat_adapter;
-        private RecyclerView rv_chat, rv_list;
-        private TextView roomName_num; // 방이름+인원
-        private ImageView marker_img;
-        private boolean isRun;
-        private NaverMap 네이버Map;
-        private Chronometer chronometer;
-        private sharingList_Adapter list_adapter;
-//        private HashMap<String, Marker> thisRoomClientMarkers = new HashMap<>(); // 나를 제외한 다른 참여자들의 마커를 저장한다. 본인은 별도의 스레드로 마커를 찍는다.
-        private ArrayList<ClientInfo> clientList; // 인덱스로 이루어진 rv때문에 hashMap은 사용하지 않고 별도의 arraylist를 만들었다.
-        private Context context; // 인덱스로 이루어진 rv때문에 hashMap은 사용하지 않고 별도의 arraylist를 만들었다.
-
-
-//        private JSONArray jsonArray = null; // whatPurpose_doUI()의 파라미터로 넣기위해 전역 변수로 만들었다.
-//        private Marker[] arrMarkers = new Marker[30]; // arraylist로 했다가는 당겨져서 인덱스에 문제가 생길 수 있다.
-                                                        // 들락거리는 경우를 방지하면 30명도 충분하겠지?
-//        private ArrayList<Marker> arrMarkers = new ArrayList<>();
-//        private Marker marker; // 마커를 전역변수로 빼야 핸들러에서도 손을 댐
-
-        
-        public ClientReceiver(Handler handler, ArrayList<Chat> chat_items, chat_Adapter chat_adapter, RecyclerView rv_chat, TextView roomName_num, ImageView marker_img, boolean isRun, NaverMap 네이버Map,
-                              ArrayList<ClientInfo> clientList, sharingList_Adapter list_adapter, RecyclerView rv_list, Context context, Chronometer chronometer) {
-
-            this.handler = handler;
-            this.chat_items = chat_items;
-            this.chat_adapter = chat_adapter;
-            this.rv_chat = rv_chat;
-            this.roomName_num = roomName_num;
-            this.marker_img = marker_img;
-            this.isRun = isRun;
-            this.네이버Map = 네이버Map;
-            this.clientList = clientList;
-            this.list_adapter = list_adapter;
-            this.rv_list = rv_list;
-            this.context = context;
-            this.chronometer = chronometer;
-
-            try {
-                br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @RequiresApi(api = Build.VERSION_CODES.N)
-        @SuppressLint("SetTextI18n")
-        @Override
-        public void run() { // this name : Thread-4
-
-            Log.e("ClientReceiver.class", "isRun : "+isRun);
-
-
-            while (br!=null) {
-
-                try {
-
-
-                    // 서버로부터 받는건 객체 1개이다. 여러번 나눠서 받으니까 번잡하다. 이게 더 간편하고 확장하기도 좋다.
-                    String jsonString = br.readLine();
-                    Log.e(TAG, "방 참여자 정보 jsonString : "+jsonString); // 방 참여자 정보
-
-
-                    // jsonArray 인지 jsonObject 인지 모를 때
-                    Object json = new JSONTokener(jsonString).nextValue();
-
-
-
-                    /*********
-                     * 입장
-                    *********/
-                    if (json instanceof JSONArray) { // 여러 명에 대한 정보
-
-
-                        JSONArray jsonArray = new JSONArray(jsonString);  // Json String -> JsonArray
-                        Log.e(TAG, "이 json은 JSONArray 이다 !!");
-                        Log.e(TAG, "jsonArray : "+jsonArray);
-                        Log.e(TAG, "clientList size : "+clientList.size()+"개 "+ clientList);
-
-
-
-                        // 모든 참여자에 대한 정보 (없는 사람만 추가)
-                        clientList = returnOneClient_입장(jsonArray, clientList, 네이버Map); // 참여자 명단 업뎃
-                        Log.e(TAG, "함수 바깥 - clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
-
-
-                        // 마지막 입장한 참여자
-                        ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
-
-
-                        // 입장 후 UI 변화를 적용한다
-                        clientList = whatPurpose_doUI입장(lastlyClient, handler, clientList, context, 네이버Map, roomName_num, marker_img,
-                                            chat_items, rv_chat, chat_adapter, rv_list, list_adapter);
-                        Log.e(TAG, "whatPurpose_doUI입장 함수 바깥 - clientList : "+clientList.size()+"개 "+clientList);
-
-//                            Log.e(TAG, "for문) '입장' 후 handler로 img view가져와서 marker에 setIcon하기// 핸들러 따로 실행 함");
-//                            clientList = markerSetImg(handler, clientList, i, marker_img);
-
-
-
-
-
-                    /*************************************
-                     * 채팅, 위치, 퇴장, 강제종료, 운동시작
-                     ************************************/
-                    } else if (json instanceof JSONObject) { // 한 사람에 대한 정보
-
-
-                        Log.e(TAG, "이 json은 JSONObject 이다 !!");
-
-                        // 배열 안에 있는것도 JSON형식 이기 때문에 JSON Object 로 추출
-                        JSONObject jsonObject = new JSONObject(jsonString);
-                        Log.e(TAG, "jsonObject : "+jsonObject);
-
-
-                        // 한 사람의 정보. 용도 추출
-                        String StreamPurposes = (String) jsonObject.get("purposes"); // 입장/채팅/위치/퇴장 중 1
-                        String RoomFirstPerson_Email = (String) jsonObject.get("email");
-                        String RoomFirstPerson_Nickname = (String) jsonObject.get("chatFrom");
-                        String RoomFirstPerson_imgURI = (String) jsonObject.get("markerImg"); // 하나라도 key이름이 틀리면 이후가 작동 안 한다....
-                        String RoomFirstPerson_Msg = (String) jsonObject.get("msg");
-                        String RoomFirstPerson_ChatTime = (String) jsonObject.get("chatTime");
-                        double RoomFirstPerson_Lat = (double) jsonObject.get("Lat");
-                        double RoomFirstPerson_Lng = (double) jsonObject.get("Lng");
-                        Log.e(TAG, "첫 번째 사람 변수 확인 jsonObject " +
-                                "\nStreamPurposes : "+ StreamPurposes);
-
-
-
-                        // 서버에서 방금 보낸 딱 한 명에 대한 정보
-                        ClientInfo client = new ClientInfo(StreamPurposes, RoomFirstPerson_Email, RoomFirstPerson_Nickname, "img..",RoomFirstPerson_imgURI, RoomFirstPerson_Msg,
-                                                RoomFirstPerson_ChatTime, "chatFrom..", RoomFirstPerson_Lat, RoomFirstPerson_Lng, null,null);
-//                        clientList.add(client); // << 주의!! 추가하면 안 됨. 그러면 위치 업뎃할 때마다 1명씩 추가 됨
-
-
-
-                        Log.e(TAG, "handler로 ui작업(1~4단계 처리를 한다)");
-                        clientList = whatPurpose_doUI(client, handler, clientList, context, 네이버Map, roomName_num, marker_img,
-                                                      chat_items, rv_chat, chat_adapter, rv_list, list_adapter, chronometer);
-
-
-
-                        Log.e(TAG, "한 명의 정보가 왔다. 마커를 생성하고 client객체 하나를 만든다.");
-                        Log.e(TAG, "함수 바깥2 - clientList 추가 : "+clientList.size()+"개 "+clientList);
-                    }
-
-                } catch (JSONException | IOException e) {
-                    e.printStackTrace();
-                }
-
-
-            }
-        }
-    } // ~inner class(수신)
 
 
 
@@ -1262,7 +714,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ http통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
     @SuppressLint("LongLogTag")
-    private void retrofit_퇴장업뎃_removeRoom(String h시간m분s초) {
+    public void retrofit_퇴장업뎃_removeRoom(String h시간m분s초) {
 
 
         //이벤트 : 퇴장버튼 클릭/강제종료
@@ -1356,58 +808,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
     }
 
-    //시작버튼 누르면 db에 운동시작한 시간이 저장된다. 보냈다는걸 알 수 있는 의미없는 데이터를 보낸다.
-    @SuppressLint("LongLogTag")
-    private void retrofit_Room_RoomUser업뎃(Context context) {
 
-        //이벤트 : 시작버튼 클릭
-        //보낼 값 : 시작했다는 아무 값
-        //결과 : 룸테이블 - 시작시간, 룸유저테이블 시작시간 업뎃
-        //응답 : sucess
-
-        Log.e(TAG, "retrofit_Room_RoomUser업뎃() 입장!!!!!!!!!!");
-
-        //레트로핏 객체 생성, 빌드
-        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder() //Retrofit 인스턴스 생성
-                .baseUrl("http://15.164.129.103/")  //baseUrl 등록
-                .addConverterFactory(GsonConverterFactory.create())  //http통신시에 주고받는 데이터형태를 변환시켜주는 컨버터를 지정한다. Gson, Jackson 등이 있다. Gson 변환기 등록
-                .client(createOkHttpClient()) //네트워크 통신 로그보기(서버로 주고받는 파라미터)
-                .build();
-
-
-
-        //ㅡㅡㅡㅡㅡ
-        // 시간업뎃 : 방 생성시간 X 운동시작시간 O
-        //ㅡㅡㅡㅡㅡ
-        Sharing SharingRoomCreate = retrofit.create(Sharing.class);   // 레트로핏 인터페이스 객체 구현
-        Log.e(TAG, "retrofit_Room_RoomUser업뎃()... 위도 :"+위도+"/경도:"+경도);
-        String 추출한주소 = 위경도to주소(위도,경도, context);
-        Log.e(TAG, "추출한주소? : "+추출한주소); //응답값은 db에 잘 들어갔는지 확인만하기. 사용할 일은 없음
-
-        Call<Sharing_room> call = SharingRoomCreate.startTracking(myRoom_no, myEmail, 추출한주소); //보냄 : 방번호로 특정, email로 방 참여자 명단 만들기(명단은 '등산중'에 참여한 사람만 해당된다.)
-
-        // 주
-        // 소
-
-        //네트워킹 시도 2
-        call.enqueue(new Callback<Sharing_room>() { //enqueue : 비동기식 통신을 할 때 사용/ execute: 동기식
-            @SuppressLint("SetTextI18n")
-            @Override
-            public void onResponse(Call<Sharing_room> call, Response<Sharing_room> response) {
-
-                Sharing_room result = response.body();
-                assert result != null;
-                Log.e(TAG, "성공인가? : "+result.getResponse()); //응답값은 db에 잘 들어갔는지 확인만하기. 사용할 일은 없음
-
-            }
-
-            @Override
-            public void onFailure(Call<Sharing_room> call, Throwable t) {
-                Log.e("onFailure : ", t.getMessage());
-            }
-        });
-
-    }
 
 
 
@@ -1517,7 +918,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 Log.e(TAG, "소켓연결() 입장전 h시간m분s초... null인가? : " + h시간m분s초);
                 Log.e(TAG, "소켓연결() 입장전 변수 확인 : "+ip+port+myName); //실질 방 생성은 여기이므로 소켓을 방입장하자마자 연결하는게 아니라 여기서 연결함
                 sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
-                소켓연결(iv_sendMessage, showRecyclerview, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
+                소켓연결(iv_sendMessage, showRecyclerview, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
                         mHandler, chat_adapter, chat_items, rv_chat, getApplicationContext(),  M_share_2_Map.this, roomName_num, marker_img, isRun, 네이버Map,
                         clientList, list_adapter, rv_list, chronometer); //서버와 소켓을 연결한다.
 
@@ -1605,7 +1006,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     // 네트워크 통신 로그(서버로 보내는 파라미터 및 받는 파라미터) 보기
-    static OkHttpClient createOkHttpClient() {
+    public static OkHttpClient createOkHttpClient() {
 
         Log.e("createOkHttpClient ()", "로그찍는 메소드");
 
@@ -1630,329 +1031,16 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ 소켓 통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
 
-    // 입장 후 ~ (1명씩 데이터 담기) ~ 입장UI처리
-    public ArrayList<ClientInfo> returnOneClient_입장(JSONArray jsonArray, ArrayList<ClientInfo> clientList, NaverMap 네이버Map) throws JSONException { String TAG = "returnOneClient_입장() ";
 
 
-            ClientInfo client = null;
 
-            for(int i=0; i<jsonArray.length(); i++) { // 내가 이 방에 처음 입장했을 때 실행. 현재 참여중인 방참여자 모두 가져옴. 마커로 비교해서 없는 사람만 추가하기
 
-                // 배열 안에 있는것도 JSON형식 이기 때문에 JSON Object 로 추출
-                JSONObject object = (JSONObject) jsonArray.get(i);
 
-                // JSON name으로 추출
-                String purposes = (String) object.get("purposes");
-                String email = (String) object.get("email");
-                String Img = (String) object.get("Img");
-                String markerImg = (String) object.get("markerImg");
-                String msg = (String) object.get("msg");
-                String chatTime = (String) object.get("chatTime");
-                String chatFrom = (String) object.get("chatFrom");
-                double Lat = (double) object.get("Lat");
-                double Lng = (double) object.get("Lng");
 
-                Log.e(TAG,  "\n변수 확인 jsonObject.. " +
-                        "\njsonArray.length() : " + jsonArray.length() +
-                        "\npurposes : " + purposes +
-                        "\nemail : " + email +
-                        "\nImg : " + Img +
-                        "\nmarkerImg : " + markerImg +
-                        "\nmsg : " + msg +
-                        "\nchatTime : " + chatTime +
-                        "\nchatFrom : " + chatFrom +
-                        "\nLat : " + Lat +
-                        "\nLng : " + Lng);
-
-
-                // 안드에서 가지고있는 명단 vs 채팅서버에서 가져온 이멜 비교
-                if (clientList.size() <= i) { // 인덱스로 하니까 에러나서 size로 함. 어차피 서버에서 순서대로 받아오기 때문
-
-
-                    // 클라이언트 한 명 정보에 저장하기
-                    client = new ClientInfo(purposes, email, chatFrom, Img, markerImg, msg, chatTime, chatFrom, Lat, Lng, null, URLtoBitmap(markerImg)); // 마커는 다음 메소드에서 적용
-                    clientList.add(client);
-                    Log.e(TAG, "client 한 명 : "+client);
-                    Log.e(TAG, "클라1명 생성(마커포함) / clientList size : "+clientList.size() +clientList);
-
-                } else {
-                    Log.e(TAG, "클라 추가X 이미 가진 명단임/ clientList size: "+clientList.size() +clientList);
-                }
-
-            } // ~for()
-
-
-        return clientList; // 한 사람. 마지막으로 들어온 당사자 정보
-    }
-
-
-
-
-    // *********** 수신 ***********
-    // 입장 후 UI 변경사항
-    // 파라미터가 많은 이유 : M_share_3_join_Map 에서도 이 함수를 쓰니까 뷰들을 파라미터로 뚫어놨다.
-    // 리턴이 2개라서 1개의 객체로 받기 위해 모델을 만들었음
-    // ****************************
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @SuppressLint({"SetTextI18n", "NotifyDataSetChanged"})
-    public ArrayList<ClientInfo> whatPurpose_doUI(ClientInfo lastlyClient, Handler handler, ArrayList<ClientInfo> clientList, Context context,
-                                               NaverMap 네이버Map, TextView roomName_num, ImageView marker_img, ArrayList<Chat> chat_items, RecyclerView rv_chat, chat_Adapter adapter,
-                                               RecyclerView rv_list, sharingList_Adapter list_adapter, Chronometer chronometer) { String TAG = "whatPurpose_doUI() ";
-
-
-        // UI 작업은 핸들러로 처리해야 한다
-        handler.post(new Runnable() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void run() {
-
-
-                Log.e(TAG, "\n"+
-                        "\nUI 입장 외 변수 확인.. " +
-                        "\nclientList size : " + clientList.size() +
-                        "\npurposes : " + lastlyClient.getPurposes() +
-                        "\nemail : " + lastlyClient.getEmail() +
-                        "\nnickName : " + lastlyClient.getName() +
-                        "\nmarkerImg : " + lastlyClient.getMarkerImg() +
-                        "\nmarker null이겠지: " + lastlyClient.getMarker() +
-                        "\nmsg : " + lastlyClient.getMsg() +
-                        "\nchatTime : " + lastlyClient.getChatTime() +
-                        "\nLat : " + lastlyClient.getLat() +
-                        "\nLng : " + lastlyClient.getLng());
-
-
-                /*********
-                 * 채팅
-                 *********/
-                if (lastlyClient.getPurposes().equals("채팅")) { Log.e(TAG, "if문 - 채팅");
-
-
-
-                    Chat chat = new Chat(lastlyClient.getName(), lastlyClient.getMsg(), lastlyClient.getChatTime());
-                    chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-
-
-
-                /**********************
-                 * 위치 : n초마다 실행
-                 **********************/
-                } else if (lastlyClient.getPurposes().equals("위치")) { Log.e(TAG, "if문 - 위치");
-
-
-                    // 채팅으로 우선 확인하기
-//                    Chat chat = new Chat(lastlyClient.getName(), lastlyClient.getLat()+"/"+lastlyClient.getLng(), lastlyClient.getChatTime());
-//                    chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-
-
-                    for(int i=0; i<clientList.size(); i++) { // 내가 이 방에 처음 입장했을 때 실행. 현재 참여중인 방참여자 모두 가져옴. 마커로 비교해서 없는 사람만 추가하기
-                        Log.e(TAG, "목적 : 위치/ 마커 반복문에 들어왔다 / i : "+i);
-
-
-                        // 명단에 있는 이메일과 방금 막 위치정보를 보낸 이메일이 동일하면 명단을 업뎃한다.
-                        if (clientList.get(i).getEmail().equals(lastlyClient.getEmail())) {
-
-
-                            // clientList는 제일 중요한 참여자 정보를 담는 장소임. 주의해서 업뎃하기기
-                            clientList.get(i).setPurposes(lastlyClient.getPurposes());
-                            clientList.get(i).setLat(lastlyClient.getLat());
-                            clientList.get(i).setLng(lastlyClient.getLng());
-                            Log.e(TAG, "clientList (목적, msg, 위경도) 업뎃");
-
-
-                            ClientInfo client = clientList.get(i);
-                            Marker marker;
-
-                            // 입장 후 첫 위치전송이면 null이라서 새로 생성하고
-                            // 이 사람의 marker값이 있으면 기존 마커값을 삭제하고 다시 set하기
-                            if (clientList.get(i).getMarker() == null) {
-                                marker = new Marker();
-                            } else {
-                                marker = clientList.get(i).getMarker();
-                                marker.setMap(null);
-                            }
-
-                            marker.setPosition(new LatLng(client.getLat(),client.getLng()));
-                            marker.setCaptionText(client.getName());
-                            marker.setCaptionAligns(Align.Top);
-                            marker.setIcon(OverlayImage.fromBitmap(client.getBitmap()));
-                            marker.setMap(네이버Map);
-                            Log.e(TAG, "marker 생성 : "+marker);
-
-
-                            clientList.get(i).setMarker(marker);
-                            Log.e(TAG, "marker 저장 : "+marker);
-
-
-                        }
-                    }
-
-
-                /*********
-                 * 퇴장
-                 *********/
-                } else if (lastlyClient.getPurposes().equals("퇴장")) { // 나말고 누가 퇴장했다.
-
-
-                    Chat chat = new Chat("", lastlyClient.getMsg(), ""); // msg 는 모두에게 동일해서 인덱스 0도 ok
-                    chat_items.add(chat); // 리사이클러뷰와 연결된 배열에 추가
-                    Log.e(TAG, "lastlyClient 목적 : "+lastlyClient.getPurposes());
-
-
-
-                    // 명단에서 퇴장한 사람 찾아내기
-                    for (int i=0; i<clientList.size(); i++) {
-
-                        Log.e(TAG, "명단 삭제 i : "+i);
-                        Log.e(TAG, "clientList : "+clientList);
-
-
-                        if (clientList.get(i).getName().equals(lastlyClient.getName())) { // 명단 중에 퇴장하는 사람의 닉네임과 같다면
-                            Log.e(TAG, "clientList i번재 이름 == lastlyClient i번재 이름 ");
-
-
-                            Log.e(TAG, "퇴장한 사람의 마커 삭제");
-                            clientList.get(i).getMarker().setMap(null);
-
-
-                            // 퇴장한 사람의 명단 삭제
-                            Log.e(TAG, "clientList.remove 직전 : "+clientList);
-                            clientList.remove(i); // 해당 인덱스 삭제. 아래에서 업뎃
-                            Log.e(TAG, "clientList.remove 직후 : "+clientList);
-
-                        }
-                    }
-
-                    // 방이름+남은인원
-                    roomName_num.setText(방이름+"("+clientList.size()+"명)"); // 여기 위치! 명단 삭제 후 인원 setText
-
-
-
-
-                /***********
-                 * 강제종료
-                 ***********/
-                } else if (lastlyClient.getPurposes().equals("강제종료")) {
-
-                    // 방퇴장처리를 여기말고 위치스레드안에 위치시킨 이유 : activity.class를 파라미터로 전달이 안 되서.
-//                    소켓통신목적 = lastlyClient.getPurposes(); // M_share_3_join_Map.class에서 강제종료할 때 사용하기 위해
-                    Log.e(TAG, "소켓 수신... '강제종료' 한다는 메세지를 받았다");
-
-                    Toast.makeText(context, "위치공유방이 종료되었습니다.\n나의 기록에서 조회하실 수 있습니다.", Toast.LENGTH_LONG).show(); // 실행할 코드
-                    retrofit_퇴장업뎃_exit(myRoom_no, myEmail, h시간m분s초); //위치공유방 참여자 명단 변경(퇴장시간, 소요시간)
-                    방퇴장처리(context); //퇴장 후 뒷처리 : 변수, 쉐어드 초기화
-                    socketClose_Exit();
-
-
-
-
-                /***********
-                 * 운동시작
-                 ***********/
-                } else if (lastlyClient.getPurposes().equals("운동시작")) {
-
-//                    소켓통신목적 = lastlyClient.getPurposes(); // M_share_3_join_Map.class에서 강제종료할 때 사용하기 위해
-                    Log.e(TAG, "소켓 수신... '운동시작' 한다는 메세지를 받았다");
-
-
-                    Toast.makeText(context, "등산을 시작합니다. 안전산행 하세요.", Toast.LENGTH_SHORT).show(); //퇴장알림을 해야 확신할 듯
-                    chronometer.setBase(System.currentTimeMillis()); //스탑와치의 시작점을 시스템현재시간으로 맞춘다. tcp/ip 이후에는 방장이 방을 시작한 시간으로 맞춘다.
-                    chronometer.start(); //시작을 코드로 해줘야 굴러가서 이벤트가 작동됨
-
-                }
-
-
-                adapter.notifyDataSetChanged(); // 채팅 업데이트
-                list_adapter.notifyDataSetChanged(); // 명단 업데이트
-                rv_chat.scrollToPosition(chat_items.size()-1);
-                // rv_list는 위치변경 될 때마다 아래로 당겨지면 방장이 가려져서 입장할 때만 스크롤바 내리기
-
-
-                Log.e(TAG, "chat+list rv 업뎃, 스크롤 최하단");
-                Log.e(TAG, "adapter.notifyDataSetChanged()");
-                Log.e(TAG, "clientList : "+clientList);
-
-
-            }
-        });
-
-        return clientList; // 객체로 리턴하는 이유 : 리턴을 2개 받아야되서 객체 하나로 만듦
-
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @SuppressLint({"SetTextI18n", "NotifyDataSetChanged"})
-    public ArrayList<ClientInfo> whatPurpose_doUI입장(ClientInfo lastlyClient, Handler handler, ArrayList<ClientInfo> clientList, Context context,
-                                                  NaverMap 네이버Map, TextView roomName_num, ImageView marker_img, ArrayList<Chat> chat_items, RecyclerView rv_chat, chat_Adapter adapter,
-                                                  RecyclerView rv_list, sharingList_Adapter list_adapter) { String TAG = "whatPurpose_doUI입장() ";
-
-
-        // UI 작업은 핸들러로 처리해야 한다
-        handler.post(new Runnable() {
-            @RequiresApi(api = Build.VERSION_CODES.N)
-            @SuppressLint("NotifyDataSetChanged")
-            @Override
-            public void run() {
-
-
-                Log.e(TAG, "\n"+
-                        "\nUI입장 변수 확인.. " +
-                        "\nclientList : " + clientList +
-                        "\nclientList size : " + clientList.size() +
-                        "\npurposes : " + lastlyClient.getPurposes() +
-                        "\nemail : " + lastlyClient.getEmail() +
-                        "\nnickName : " + lastlyClient.getName() +
-                        "\nmarkerImg : " + lastlyClient.getMarkerImg() +
-                        "\nmarker null이겠지 : " + lastlyClient.getMarker() +
-                        "\nmsg : " + lastlyClient.getMsg() +
-                        "\nchatTime : " + lastlyClient.getChatTime() +
-                        "\nLat : " + lastlyClient.getLat() +
-                        "\nLng : " + lastlyClient.getLng());
-
-
-//                Marker pickThisMarker = lastlyClient.getMarker(); // 위치, 퇴장에서 같이 사용
-//                Log.e(TAG, "pickThisMarker : "+pickThisMarker);
-//                Log.e(TAG, "pickThisMarker getCaptionText : "+pickThisMarker.getCaptionText());
-//                Log.e(TAG, "pickThisMarker getIcon : "+pickThisMarker.getIcon());
-//                Marker pickThisMarker = thisRoomClientMarkers.get(lastlyClient.getEmail()); // 위치, 퇴장에서 같이 사용
-
-
-                /*********
-                 * 입장
-                 *********/
-                if (lastlyClient.getPurposes().equals("입장")) { Log.e(TAG, "if문 - 입장"); // 누군가 입장할 때 실행
-
-
-                    // 방참여자수
-                    roomName_num.setText(방이름+"("+clientList.size()+"명)"); //방이름+인원
-
-
-                    // 채팅창 업뎃뎃
-                    Chat chat = new Chat("", lastlyClient.getMsg(), ""); // 파라미터 3개 중 2개 비워두기
-                    chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-
-
-                }
-
-
-                adapter.notifyDataSetChanged(); // 채팅 업데이트
-                list_adapter.notifyDataSetChanged(); // 명단 업데이트
-                rv_chat.scrollToPosition(chat_items.size()-1);
-                rv_list.scrollToPosition(chat_items.size()-1);
-
-
-                Log.e(TAG, "clientList : "+clientList);
-
-            }
-        });
-
-        return clientList;
-    }
 
 
     public void 소켓연결(ImageView iv_sendMSG, ConstraintLayout showRV, // 발신
-                     TextView fold, Dialog dialog_chat, Dialog dialog_leave, EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
+                     TextView fold, TextView tv_trackingStart, Dialog dialog_chat, Dialog dialog_leave, EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
                      Handler handler, chat_Adapter adapter, ArrayList<Chat> chat_items, RecyclerView rv_chat, Context context, Context activity, TextView roomName_num, ImageView marker_img, boolean isRun,
                      NaverMap 네이버Map, ArrayList<ClientInfo> clientList, sharingList_Adapter list_adapter, RecyclerView rv_list, Chronometer chronometer) { // 수신
 
@@ -1971,7 +1059,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
                     // 채팅 송신용 쓰레드 생성
-                    ClientSender sender = new ClientSender(iv_sendMSG, showRV, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
+                    ClientSender sender = new ClientSender(iv_sendMSG, showRV, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
                                                            handler, context, activity, isRun, clientList); //방이름도 같이 서버에 전달(어느방에 입장했는지)
                     sender.start();
 
@@ -2008,26 +1096,6 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
     }
 
-    public void 채팅메세지배경뷰_보임숨김(int rv_visible상태, Handler mHandler, ConstraintLayout showRecyclerview, TextView fold) {
-
-        Log.e(TAG, "rv_visible상태2 : "+rv_visible상태);
-
-        mHandler.postDelayed(new Runnable() { // error : Only the original thread that created a view hierarchy can touch its views.
-            @Override
-            public void run() {
-                if (rv_visible상태 == 0) { //int 그대로 set이 안돼서 조건문으로 나눔
-                    Log.e(TAG, "VISIBLE로 원상복구");
-                    showRecyclerview.setVisibility(View.VISIBLE); //만약 펴놨으면 다시 펴놓기
-                    fold.setVisibility(View.VISIBLE); //손잡이도
-                } else {
-                    Log.e(TAG, "GONE으로 원상복구");
-                    showRecyclerview.setVisibility(View.GONE); //만약 접혀있었으면 다시 접기
-                    fold.setVisibility(View.VISIBLE);
-                }
-            }
-        }, 100);
-
-    }
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ 기타 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
@@ -2090,80 +1158,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
     }
 
-    static String 위경도to주소(double lat, double lng, Context context) { //long은 안되나?
-
-        String TAG = "위경도to주소() ";
-        Log.e(TAG, "위경도to주소() lat : "+lat+" / lng : "+lng);
-        String 추출된주소 = null;
-
-        Geocoder g = new Geocoder(context, Locale.getDefault());
-        try {
-            List<Address> address = g.getFromLocation(lat, lng, 10);
-            String 주소 = address.get(0).getAddressLine(0);
-
-            Log.e(TAG, "address : "+address);
-            Log.e(TAG, "주소 : "+주소);
-
-            추출된주소 = 주소추출(주소); // 원하는 주소만 추출 >> 서울특별시 동작구 사당4동
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e(TAG, "입출력오류");
-        }
-        return 추출된주소;
-    }
 
 
-    static String 주소추출(String 주소) {
 
-        //대한민국 서울특별시 동작구 사당4동 300-73
-        // >> 서울특별시 동작구 사당4동
-        //대한민국 전라남도 장흥군 용산면 덕암리 산10
-        // >> 전라남도 장흥군 용산면
-
-        String target동 = "동 "; // 동 인곳을 타겟으로 삼아서
-        String target면 = "면 "; //지방의 경우 군/면/리
-        int target_num동 = 주소.indexOf(target동); //인덱스를 알아낸다.
-        int target_num면 = 주소.indexOf(target면);
-
-
-        String 리턴받는수정주소; //추출한 주소를 이 변수에 담아 리턴할 것임
-
-        if(target_num동 != -1) {//"동"이라면
-
-            리턴받는수정주소 = 주소.substring(5, target_num동+1); //서울 ~ 동까지 추출
-            return 리턴받는수정주소;
-
-        } else if(target_num면 != -1) { //"면"이라면
-
-            리턴받는수정주소 = 주소.substring(5, target_num면+1);//면으로 편집한 주소
-            return 리턴받는수정주소;
-
-        } else { //동도 면도 아니라면
-
-            return 주소; //else로 나머지 다 때려넣어야지. 여기때문에 에러났음
-        }
-
-    }
-
-
-    static public void socketClose_Exit() {
-
-        String TAG = "socketClose_Exit()";
-        try {
-            if (socket != null) {
-
-                Log.e(TAG, "* socket.isClosed() : "+socket.isClosed());
-                socket.close();
-                Log.e(TAG, "** socket.isClosed() : "+socket.isClosed());
-                Log.e(TAG, "*** socket : "+socket); // 소켓을 close해도 객체가 null인건 아니다다
-
-            }                            } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-    }
 
     //직접퇴장, 시간지나 강제퇴장 두 가지라서 메소드를 따로 만듦
     static public void 방퇴장처리(Context context) {
@@ -2319,20 +1316,20 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         Log.e("시분초변환() h : ", String.valueOf(h));
 
 
-        if(time > 주어진시간 - 5000) { //강제종료 전 미리 고지
-
-            Log.e("시분초변환() ", "s == 10");
-            Toast.makeText(getApplicationContext(), "위치공유방 종료까지 "+5+"초가 남았습니다.", Toast.LENGTH_LONG).show(); // 실행할 코드
-            //토스트 외에도 소리나는 알림으로 말해주면 좋을 듯
-            //우선 넘어가고 보충하고 싶으면 여기 업그레이드하자
-        }
-
-        //강제종료 시간 조건
-        if(time > 주어진시간) { //20초가 지나면 강제종료 된다.
-
-            Log.e("시분초변환() ", "s == 20");
-            return "종료";
-        }
+//        if(time > 주어진시간 - 5000) { //강제종료 전 미리 고지
+//
+//            Log.e("시분초변환() ", "s == 10");
+//            Toast.makeText(getApplicationContext(), "위치공유방 종료까지 "+5+"초가 남았습니다.", Toast.LENGTH_LONG).show(); // 실행할 코드
+//            //토스트 외에도 소리나는 알림으로 말해주면 좋을 듯
+//            //우선 넘어가고 보충하고 싶으면 여기 업그레이드하자
+//        }
+//
+//        //강제종료 시간 조건
+//        if(time > 주어진시간) { //20초가 지나면 강제종료 된다.
+//
+//            Log.e("시분초변환() ", "s == 20");
+//            return "종료";
+//        }
 
 
         return t;
