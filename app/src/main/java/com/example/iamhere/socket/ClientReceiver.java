@@ -14,6 +14,7 @@ import static com.example.iamhere.M_share_3_join_Map.retrofit_퇴장업뎃_exit;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
@@ -51,7 +52,7 @@ import java.util.ArrayList;
 public class ClientReceiver extends Thread{
 
     String TAG = "ClientReceiver.class";
-    //        private DataInputStream dis;
+//        private DataInputStream dis;
 //    private BufferedReader br;
     private Handler handler;
     private ArrayList<Chat> chat_items;
@@ -536,8 +537,7 @@ public class ClientReceiver extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
+
 
 } // ~inner class(수신)

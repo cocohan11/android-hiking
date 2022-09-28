@@ -3,6 +3,8 @@ package com.example.iamhere;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 //import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -88,6 +90,8 @@ import com.example.iamhere.Recyclerview.chat_Adapter;
 import com.example.iamhere.Recyclerview.sharingList_Adapter;
 import com.example.iamhere.socket.ClientReceiver;
 import com.example.iamhere.socket.ClientSender;
+import com.example.iamhere.socket.Constants;
+import com.example.iamhere.socket.LocationService;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.gson.Gson;
@@ -364,13 +368,11 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                                 editor.apply(); //실질 저장
 
 
+
+
                                 //경과시간 삽입
                                 //
                                 //
-
-                                //명단 리사이클러뷰에 '방장인 나' 추가
-
-
 
                             }
                         })
@@ -711,6 +713,55 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 //    }
 
 
+    /** 서비스 시작 */
+    private void startLocationService() {
+        if (!isLocationServiceRunning()) { // 돌아가는 중 아니다. 그럼 돌아가라고 한다.
+            Intent intent = new Intent(getApplicationContext(), LocationService.class);
+            intent.setAction(Constants.ACTION_START_LOCATION_SERVICE);
+            startService(intent);
+            Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
+        } // 돌아가는 중이면 아무것도 없음
+    }
+
+    /** 서비스 정지 */
+    private void stopLocationService() {
+        if (isLocationServiceRunning()) { // 멈춰있는는중이다. 그럼 멈추라고 한다.
+            Intent intent = new Intent(getApplicationContext(), LocationService.class);
+            intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
+            startService(intent);
+            Toast.makeText(this, "Location service stopped", Toast.LENGTH_SHORT).show();
+        } // 멈춰있다면 아무것도 없음
+    }
+
+    /** 돌아가는 중인가? */
+    public boolean isLocationServiceRunning() { Log.e(TAG, "isLocationServiceRunning()");
+
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        Log.e(TAG, "activityManager : "+activityManager);
+        // ActivityManager는 activity, service, process에 정보를 제공하고 상호작용한다...
+        // getSystemService : 매개변수로 식별되는 시스템 서비스를 획득
+
+
+        if (activityManager != null) {
+            for (ActivityManager.RunningServiceInfo service : activityManager.getRunningServices(Integer.MAX_VALUE)) {
+                Log.e(TAG, "service : "+service);
+
+                if (LocationService.class.getName().equals(service.service.getClassName())) {
+                    Log.e(TAG, "LocationService.class.getName() : "+LocationService.class.getName());
+                    Log.e(TAG, "service.service.getClassName() : "+service.service.getClassName());
+
+                    if (service.foreground) {
+                        Log.e(TAG, "service.foreground is true");
+                        return true;
+                    } // getRunningServices : 현재 시스템에서 동작 중인 모든 서비스 목록을 얻을 수 있다.
+                } // RunningServiceInfo : 타입의 객체로 각 서비스의 정보가 반환됨
+            } // Service의 클래스명, 앱의 패키지명 등으로 이 앱의 서비스가 구동 중인지 판단할 수 있다.
+            return false;
+        }
+        return false;
+    }
+
+
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ http통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
     @SuppressLint("LongLogTag")
@@ -1043,6 +1094,14 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                      TextView fold, TextView tv_trackingStart, Dialog dialog_chat, Dialog dialog_leave, EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
                      Handler handler, chat_Adapter adapter, ArrayList<Chat> chat_items, RecyclerView rv_chat, Context context, Context activity, TextView roomName_num, ImageView marker_img, boolean isRun,
                      NaverMap 네이버Map, ArrayList<ClientInfo> clientList, sharingList_Adapter list_adapter, RecyclerView rv_list, Chronometer chronometer) { // 수신
+
+
+        //ㅡㅡㅡㅡㅡㅡㅡ
+        // 서비스 시작 : 앱이 종료되어도 서비스에 소켓이 살아있어서 상대방에 내 위치전송 가능
+        //ㅡㅡㅡㅡㅡㅡㅡ
+        Log.e(TAG, "startLocationService() 앱이 종료되어도 서비스덕분에 소켓이 살아있음");
+        startLocationService(); // 포그라운드 알림(위치공유중) + 내 위치 전송
+
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
         // 안드로이드 클라이언트의 소켓과 서버의 소켓이 연결한다.

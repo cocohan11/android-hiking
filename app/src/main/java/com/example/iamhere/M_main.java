@@ -20,6 +20,8 @@ import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.위도;
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_profile.BitmapToString;
+import static com.example.iamhere.socket.Constants.LOCATION_PERMISSION_REQUEST_CODE;
+import static com.example.iamhere.socket.Constants.PERMISSIONS;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -108,8 +110,6 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
     MapView mapView; //지도 뷰(보이는 것)
     ImageView circle_btn_sharing;
     NaverMap 네이버Map; //null이었다가 onMapReady에서 값 대입받음 지도 api(기능)....어디에 쓰는지 잘 모르겠음 어차피 콜백함수에서 알아서 네이버맵 클래스 불러오는데?
-    final int LOCATION_PERMISSION_REQUEST_CODE = 1000; //런타임권한요청코드
-    final String[] PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}; //대략,정확한 위치 권한
     FusedLocationSource locationSource; //런타임권한얻은 현재위치값
     String filePath; //지도위프로필사진 넣기위해 file객체 만듦
     Handler handler2 = new Handler(); //스레드 도중 UI객체에 손대기 위해 핸들러 부름
