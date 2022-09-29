@@ -6,8 +6,8 @@ import static com.example.iamhere.L_login.myImg;
 import static com.example.iamhere.L_login.myMarkerImg;
 import static com.example.iamhere.L_login.myName;
 import static com.example.iamhere.L_login.myRoom_no;
-import static com.example.iamhere.L_login.pw;
-import static com.example.iamhere.L_login.socket;
+import static com.example.iamhere.socket.LocationService.pw;
+import static com.example.iamhere.socket.LocationService.socket;
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_login.모든위치업뎃_sec;
 import static com.example.iamhere.L_login.방이름;
@@ -306,6 +306,7 @@ public class ClientSender extends Thread {
 
 
                                                     Log.e(TAG, "참여자가 나가기 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
+//                                                    if ()
                                                     Toast.makeText(context, "위치공유방이 종료되었습니다.\n나의 기록에서 조회하실 수 있습니다.", Toast.LENGTH_SHORT).show(); // 에러 원인 : context를 전달받지 못했음 getapplicationContext쓰면 에러남
 
 
@@ -325,6 +326,7 @@ public class ClientSender extends Thread {
                                                     isRun = false; // 자기위치 찍기 종료
                                                     소켓통신목적 = "퇴장"; // M_share_3_join_Map.class에서 퇴장할 때 토스트를 사용하기 위해(2안에서 context파라미터 사용해도 안됨;;)
                                                     Log.e(TAG, "퇴장 토스트를 띄우기 위한 변수 - 소켓통신목적:"+소켓통신목적); // M3에서 마커스레드 안에서 사용됨.
+
 
 
                                                 }
@@ -404,6 +406,7 @@ public class ClientSender extends Thread {
     }
 
     /*********************************************************************************************/
+
 
     //시작버튼 누르면 db에 운동시작한 시간이 저장된다. 보냈다는걸 알 수 있는 의미없는 데이터를 보낸다.
     @SuppressLint("LongLogTag")

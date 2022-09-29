@@ -34,8 +34,11 @@ import androidx.fragment.app.FragmentManager;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -53,6 +56,7 @@ import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
@@ -63,6 +67,7 @@ import android.widget.Toast;
 
 import com.example.iamhere.Interface.Sharing;
 import com.example.iamhere.Model.Sharing_room;
+import com.example.iamhere.socket.LocationService;
 import com.kakao.sdk.talk.TalkApiClient;
 import com.kakao.sdk.user.UserApiClient;
 import com.naver.maps.geometry.LatLng;
@@ -87,6 +92,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -119,6 +125,29 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
     SharedPreferences.Editor 스탑와치editor, 변수editor; //get해서 강제종료인지 확인 후 변수 처리
     ArrayList<Marker> arr마커1개만존재 = new ArrayList<>(); //실시간 내 위치마커가 2개이상 존재하면 없애기 위한 배열
 
+    // 서비스
+    static public LocationService locationService; // 서비스 객체
+    static public boolean isService = false; // 서비스 중인 확인용
+
+    /** activity와 service의 연결고리 */
+    static public final ServiceConnection conn = new ServiceConnection() { // 컴포넌트(여기선 activity) + 서비스 연결
+        @Override // onBind() 이후 연결됨
+        public void onServiceConnected(ComponentName name, IBinder service) { String TAG = "onServiceConnected() "; // 서비스와 연결되었을 때 호출되는 메서드
+            Log.e(TAG, "ComponentName : "+name);
+            LocationService.MyBinder myBinder = (LocationService.MyBinder) service;
+            locationService = myBinder.getService(); // 서비스가 제공하는 메소드 호출하여 서비스쪽 객체를 전달받을수 있다.
+            isService = true;
+            Log.e(TAG, "isService : "+isService);
+        }
+
+        @Override
+        @SuppressLint("LongLogTag")
+        public void onServiceDisconnected(ComponentName name) { String TAG = "onServiceDisconnected() "; // 서비스와 연결이 끊겼을 때 호출되는 메서드
+            Log.e(TAG, "ComponentName : "+name);
+            isService = false;
+            Log.e(TAG, "isService : "+isService);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -128,12 +157,34 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
         Log.e(TAG,"UserApiClient.getInstance() : "+ UserApiClient.getInstance());
         Log.e(TAG, "TalkApiClient.getInstance() : "+ TalkApiClient.getInstance());
 
+
+
+        /*서비스 리스트*/
+        ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
+        List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(1000);
+
+        for(int  i=0;  i<rs.size();  i++){
+            ActivityManager.RunningServiceInfo  rsi  =  rs.get(i);
+            Log.e("run  service","Package  Name  :  "  +  rsi.service.getPackageName());
+            Log.e("run  service","Class  Name  :  "  +  rsi.service.getClassName());
+        }
+
         // 위치관리자 객체 생성성
-       LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
-
-
-
+        LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
         ID();
+        Intent intent = getIntent();
+
+        // sns로그인 or 일반로그인 구분
+        String getL_login_kakao = intent.getStringExtra("L_login_kakao");
+        Log.e(TAG, "get L_login_kakao :"+getL_login_kakao);
+
+        // 위치공유방 종료하고 넘어온 사람
+//        String stopService = intent.getStringExtra("stopService");
+//        Log.e(TAG, "stopService :"+stopService);
+//        if (stopService != null) {
+//            stopLocationService();
+//        }
+
 
 
         //자동로그인이 됐으면 서버로 보내서 데이터가져옴
@@ -179,7 +230,7 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
                 "\ndate : "+myDate+
                 "\nfilePath : "+filePath+
                 "\nnmySmallBitmapImg : "+BoolImg+
-                "\n마커합성bitmap : "+마커합성bitmap+
+//                "\n마커합성bitmap : "+마커합성bitmap+
                 "\n방이름 : "+방이름+
                 "\n방비번 : "+방비번+
                 "\nmyRoomActive : "+myRoomActive+
@@ -188,10 +239,7 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
                 "\nsnsLogin : "+mysnsLogin ); //확인용
 
 
-        //sns로그인 or 일반로그인 구분
-        Intent intent = getIntent();
-        String getL_login_kakao = intent.getStringExtra("L_login_kakao");
-        Log.e(TAG, "get L_login_kakao :"+getL_login_kakao);
+
 
 
         // 2022/05/27 07:31:46 am >> 2022/05로 만들기
@@ -281,7 +329,7 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
 
                     try {
                         Log.e(TAG, "마커합성bitmap :"+마커합성bitmap);
-                        Log.e(TAG, "mySmallBitmapImg :"+mySmallBitmapImg);
+//                        Log.e(TAG, "mySmallBitmapImg :"+mySmallBitmapImg);
                         Log.e(TAG, "통신run() try.. StringToBitmap() 들어갈거임");
                         마커합성bitmap = StringToBitmap(mySmallBitmapImg); //string -> bitmap (<<에러났던 코드)
                         Log.e(TAG, "통신run() try.. URLtoBitmap() try퇴장함");
@@ -372,6 +420,16 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
 
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+//    /** 서비스 정지 */
+//    private void stopLocationService() { Log.e(TAG, "stopLocationService() isService : "+isService);
+//
+//        if (isService) {
+//            locationService.stopLocationService(); // 서비스에서 돌아가던 위치불러오기 종료
+////            unbindService(conn); // 서비스 연결 종료 // 메인스레드에서만 실행 가능 // 어차피 activity 종료되면서 서비스도 종료됨
+//            isService = false;
+//        }
+//    }
 
 
     // 네이버 지도

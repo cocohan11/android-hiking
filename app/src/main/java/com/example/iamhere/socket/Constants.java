@@ -9,4 +9,6 @@ public class Constants {
     public static final String[] PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}; //대략,정확한 위치 권한
     public static final String ACTION_START_LOCATION_SERVICE = "startLocationService";
     public static final String ACTION_STOP_LOCATION_SERVICE = "stopLocationService";
+    public static final int REQUEST_CODE_LOCATION_PERMISSION = 1;
+
 }

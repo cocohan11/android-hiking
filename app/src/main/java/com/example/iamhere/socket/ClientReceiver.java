@@ -1,12 +1,11 @@
 package com.example.iamhere.socket;
 
 
-import static com.example.iamhere.L_login.br;
+import static com.example.iamhere.socket.LocationService.br;
+import static com.example.iamhere.socket.LocationService.socket;
 import static com.example.iamhere.L_login.h시간m분s초;
 import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myRoom_no;
-import static com.example.iamhere.L_login.pw;
-import static com.example.iamhere.L_login.socket;
 import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.M_main.URLtoBitmap;
 import static com.example.iamhere.M_share_2_Map.방퇴장처리;
@@ -97,15 +96,11 @@ public class ClientReceiver extends Thread{
     @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("SetTextI18n")
     @Override
-    public void run() { // this name : Thread-4
-
-        Log.e("ClientReceiver.class", "isRun : "+isRun);
-
+    public void run() { Log.e("ClientReceiver.class", "isRun : "+isRun); // this name : Thread-4
 
         while (br!=null) {
 
             try {
-
 
                 // 서버로부터 받는건 객체 1개이다. 여러번 나눠서 받으니까 번잡하다. 이게 더 간편하고 확장하기도 좋다.
                 String jsonString = br.readLine();

@@ -1,48 +1,44 @@
 package com.example.iamhere;
 
 import static com.example.iamhere.L_login.h시간m분s초;
-import static com.example.iamhere.L_login.iamLeader;
-import static com.example.iamhere.L_login.ip;
+import static com.example.iamhere.M_main.isService;
 import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myRoomActive;
 import static com.example.iamhere.L_login.myRoom_no;
-import static com.example.iamhere.L_login.port;
-import static com.example.iamhere.L_login.socket;
 import static com.example.iamhere.L_login.경도;
-import static com.example.iamhere.L_login.마커경도리스트;
-import static com.example.iamhere.L_login.마커리스트;
-import static com.example.iamhere.L_login.마커위도리스트;
 import static com.example.iamhere.L_login.마커합성bitmap;
 import static com.example.iamhere.L_login.방비번;
 import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.소켓통신목적;
 import static com.example.iamhere.L_login.위도;
-import static com.example.iamhere.M_share_2_Map.createOkHttpClient;
+import static com.example.iamhere.M_main.locationService;
 import static com.example.iamhere.M_share_2_Map.retrofit객체;
 import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.M_share_2_Map.마커프사null이면set하기;
 import static com.example.iamhere.M_share_2_Map.방퇴장처리;
+import static com.example.iamhere.socket.Constants.ACTION_START_LOCATION_SERVICE;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
-import androidx.recyclerview.widget.ItemTouchHelper;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.PointF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -60,6 +56,7 @@ import com.example.iamhere.Model.Sharing_room;
 import com.example.iamhere.Model.getMarker;
 import com.example.iamhere.Recyclerview.chat_Adapter;
 import com.example.iamhere.Recyclerview.sharingList_Adapter;
+import com.example.iamhere.socket.LocationService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.kakao.sdk.share.ShareClient;
@@ -122,7 +119,27 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
     // 명단
     private sharingList_Adapter list_adapter; // chat_Adapter와 함께 다님
     private ArrayList<ClientInfo> clientList = new ArrayList<>(); // 입장하면 명단에 모두가 담긴다.
-    String 방장닉넴;
+    private String 방장닉넴;
+
+
+    /** activity와 service의 연결고리 */
+    private final ServiceConnection conn = new ServiceConnection() { // 컴포넌트(여기선 activity) + 서비스 연결
+        @Override // onBind() 이후 연결됨
+        public void onServiceConnected(ComponentName name, IBinder service) { // 서비스와 연결되었을 때 호출되는 메서드
+            Log.e(TAG, "onServiceConnected() ComponentName : "+name);
+            LocationService.MyBinder myBinder = (LocationService.MyBinder) service;
+            locationService = myBinder.getService(); // 서비스가 제공하는 메소드 호출하여 서비스쪽 객체를 전달받을수 있다.
+            isService = true;
+            Log.e(TAG, "onServiceConnected() isService : "+isService);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) { // 서비스와 연결이 끊겼을 때 호출되는 메서드
+            Log.e(TAG, "onServiceDisconnected() ComponentName : "+name);
+            isService = false;
+            Log.e(TAG, "onServiceDisconnected() isService : "+isService);
+        }
+    };
 
 
     @Override
@@ -131,7 +148,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
         setContentView(R.layout.activity_mshare3_join_map);
         Log.e(TAG, "onCreate");
         ID();
-
+        startLocationService(); // 참여자는 입장하자마자 서비스를 시작하고 소켓 연결함
 
         //방장닉넴으로 채팅방 방장메세지 색상 변경
         Intent intent = getIntent();
@@ -332,11 +349,13 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
         adapter = new chat_Adapter(getApplicationContext(), chat_items, 방장닉넴, clientList);
         list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, 방장닉넴);
 
+        //ㅡㅡㅡㅡㅡㅡ
+        // 소켓 연결 : view를 전체 넘겨서 이벤트 구현
+        //ㅡㅡㅡㅡㅡㅡ
         위치공유방.sharingList_AND_chat_rv_Adapter장착(rv_chat, adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
-        위치공유방.소켓연결(iv_sendMessage, showRecyclerview2, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
+        위치공유방.스트림연결(iv_sendMessage, showRecyclerview2, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
                 handler2, adapter, chat_items, rv_chat, getApplicationContext(), M_share_3_join_Map.this, tv_방이름_인원, marker_img, isRun, 네이버Map,
                 clientList, list_adapter, rv_list, chronometer);
-
 
 
     } //~onMapReady()
@@ -344,46 +363,20 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ http 통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
-//    @SuppressLint("LongLogTag")
-//    private void retrofit_RoomUser_추가() {
-//
-//
-//        // 명단을 추가하여 '나의 기록' - '리스트보기' 에서 같이 등산했던 멤버들을 볼 수 있다.
-//        Log.e(TAG, "retrofit_RoomUser_추가() 입장!!!!!!!!!!");
-//
-//        //레트로핏 객체 생성, 빌드
-//        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder() //Retrofit 인스턴스 생성
-//                .baseUrl("http://15.164.129.103/")  //baseUrl 등록
-//                .addConverterFactory(GsonConverterFactory.create())  //http통신시에 주고받는 데이터형태를 변환시켜주는 컨버터를 지정한다. Gson, Jackson 등이 있다. Gson 변환기 등록
-//                .client(createOkHttpClient()) //네트워크 통신 로그보기(서버로 주고받는 파라미터)
-//                .build();
-//
-//
-//
-//        Sharing SharingRoomCreate = retrofit.create(Sharing.class);
-//        Call<Sharing_room> call = SharingRoomCreate.joinTheRoom(myRoom_no, myEmail); // 닉네임을 안 보내도 email로 찾아낼 수 있다.
-//
-//
-//        //네트워킹 시도 2
-//        call.enqueue(new Callback<Sharing_room>() { //enqueue : 비동기식 통신을 할 때 사용/ execute: 동기식
-//            @SuppressLint("SetTextI18n")
-//            @Override
-//            public void onResponse(Call<Sharing_room> call, Response<Sharing_room> response) {
-//
-//                Sharing_room result = response.body();
-//                assert result != null;
-//                Log.e(TAG, "성공인가??? : "+result.getResponse()); // db에 잘 들어갔는지만 확인하기. 사용할 일은 없음
-//
-//            }
-//
-//            @Override
-//            public void onFailure(Call<Sharing_room> call, Throwable t) {
-//                Log.e("onFailure : ", t.getMessage());
-//            }
-//        });
-//
-//    }
 
+    /** 서비스 시작 */
+    public void startLocationService() { Log.e(TAG, "startLocationService() isService : "+isService);
+
+        if (!isService) {
+
+            Intent intent = new Intent(getApplicationContext(), LocationService.class);
+            intent.setAction(ACTION_START_LOCATION_SERVICE);
+            bindService(intent, conn, Context.BIND_AUTO_CREATE); // 소켓생성, 서비스 시작
+            Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
+            isService = true;
+
+        }
+    }
 
     //서버에 위치공유방 참여자 명단을 변경한다. (종료시간, 소요시간을 업뎃)
     static public void retrofit_퇴장업뎃_exit(String 방번호, String 이메일, String 경과시간) {

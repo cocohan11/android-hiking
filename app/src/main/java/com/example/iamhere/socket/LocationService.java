@@ -1,5 +1,9 @@
 package com.example.iamhere.socket;
 
+
+import static com.example.iamhere.L_login.경도;
+import static com.example.iamhere.L_login.위도;
+
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -29,6 +33,10 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.Random;
 
 public class LocationService extends Service {
@@ -38,8 +46,20 @@ public class LocationService extends Service {
     private double longitude;
     private IBinder mBinder = new MyBinder(); // 외부로 데이터를 전달하려면 바인더를 사용한다.
 
+    //채팅
+    static public Socket socket; //서버와 연결될 소켓
+    static public BufferedReader br; //서버와 연결될 소켓
+    static public PrintWriter pw; //서버와 연결될 소켓
+    static public final int port = 8888;
+    static public final String ip = "192.168.0.22"; // 2학원 ip주소
+//    static final String ip = "192.168.0.155"; // 3학원 ip주소
+//    static public final String ip = "172.20.10.4"; // 핫스팟 ip주소
+
+
+
     public class MyBinder extends Binder {
         public LocationService getService() { // 서비스 객체를 리턴
+            Log.e(TAG, "getService()");
             return LocationService.this;
         }
     }
@@ -52,9 +72,10 @@ public class LocationService extends Service {
             super.onLocationResult(locationResult);
 
             if (locationResult != null && locationResult.getLastLocation() != null) {
-                latitude = locationResult.getLastLocation().getLatitude();
-                longitude = locationResult.getLastLocation().getLongitude();
-                Log.e("LOCATION_UPDATE", latitude + ", " + longitude);
+
+                위도 = locationResult.getLastLocation().getLatitude();
+                경도 = locationResult.getLastLocation().getLongitude();
+                Log.e("LOCATION_UPDATE", 위도 + ", " + 경도);
             }
         }
     };
@@ -63,11 +84,29 @@ public class LocationService extends Service {
     public IBinder onBind(Intent intent) { // 액티비티에서 bindService() 를 실행하면 호출됨
 
         Log.e(TAG, "onBind() intent.getAction(): "+intent.getAction());
-        startLocationService();
+        createSocketAtService();
+        startLocationService(); // 백그라운드 위치 + 포그라운드 알림
 
         return mBinder; // 리턴한 IBinder 객체는 서비스와 클라이언트 사이의 인터페이스 정의
     }
 
+
+    // 소켓 객체를 서비스에서 생성한다.
+    private void createSocketAtService() { Log.e(TAG, "createSocketAtService() ip : "+ip+" 포트 : "+port);
+
+        new Thread() { //error : android.os.NetworkOnMainThreadException 나기 때문에 스레드로 빼줘야함
+            public void run() { //  this name : Thread-2
+                try {
+
+                    socket = new Socket(ip, port);
+                    Log.e(TAG, "소켓 : "+socket);
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } // 소켓 생성시점보다 스트림 불러오는 시점이 더 빨라서 에러남. 아예 방입장하자 마자로 옮김
+        }}.start();
+
+    }
     // 위치 정기 업데이트에 필요한 알림, 시스템 옵션
     private void startLocationService() {
         String channelID = "location_notification_channel";
@@ -90,7 +129,7 @@ public class LocationService extends Service {
         );
         notification.setSmallIcon(R.drawable.hiking);
         notification.setContentTitle("Location Service");
-        notification.setContentText("Running");
+        notification.setContentText("위치공유 중");
         notification.setAutoCancel(true);
         notification.setPriority(NotificationCompat.PRIORITY_MAX);
 
@@ -100,7 +139,7 @@ public class LocationService extends Service {
                     && notificationManager.getNotificationChannel(channelID) == null) {
                 NotificationChannel notificationChannel = new NotificationChannel(
                         channelID,
-                        "Location Service..", // 사용자가 볼 수 있는 이름
+                        "등산방 참여", // 사용자가 볼 수 있는 이름
                         NotificationManager.IMPORTANCE_HIGH // 전체 화면 인텐트를 사용할 수 있다.
                 );
                 notificationChannel.setDescription("This channel is used by location service");
