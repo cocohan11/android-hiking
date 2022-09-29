@@ -1,53 +1,47 @@
 package com.example.iamhere.socket;
+
 import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
 import android.os.Looper;
 import android.util.Log;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 
 import com.example.iamhere.R;
+import com.example.iamhere.socket.Constants;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
+import java.util.Random;
+
 public class LocationService extends Service {
 
     private String TAG = "LocationService.class";
+    private double latitude;
+    private double longitude;
+    private IBinder mBinder = new MyBinder(); // 외부로 데이터를 전달하려면 바인더를 사용한다.
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) { Log.e(TAG, "onBind()");
-
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    // 실행되는 생명주기
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) { Log.e(TAG, "onStartCommand()");
-
-        if (intent != null) {
-            String action = intent.getAction(); // mainActivity에서 시작버튼 클릭할 때 보내진 String값
-            if (action != null) {
-                if (action.equals(Constants.ACTION_START_LOCATION_SERVICE)) {
-                    startLocationService();
-                } else if (action.equals(Constants.ACTION_STOP_LOCATION_SERVICE)) {
-                    stopLocationService();
-                }
-            }
+    public class MyBinder extends Binder {
+        public LocationService getService() { // 서비스 객체를 리턴
+            return LocationService.this;
         }
-        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -58,14 +52,21 @@ public class LocationService extends Service {
             super.onLocationResult(locationResult);
 
             if (locationResult != null && locationResult.getLastLocation() != null) {
-                double latitude = locationResult.getLastLocation().getLatitude();
-                double longitude = locationResult.getLastLocation().getLongitude();
+                latitude = locationResult.getLastLocation().getLatitude();
+                longitude = locationResult.getLastLocation().getLongitude();
                 Log.e("LOCATION_UPDATE", latitude + ", " + longitude);
             }
-
         }
     };
 
+    @Override
+    public IBinder onBind(Intent intent) { // 액티비티에서 bindService() 를 실행하면 호출됨
+
+        Log.e(TAG, "onBind() intent.getAction(): "+intent.getAction());
+        startLocationService();
+
+        return mBinder; // 리턴한 IBinder 객체는 서비스와 클라이언트 사이의 인터페이스 정의
+    }
 
     // 위치 정기 업데이트에 필요한 알림, 시스템 옵션
     private void startLocationService() {
@@ -128,12 +129,20 @@ public class LocationService extends Service {
 
     }
 
-    private void stopLocationService() {
+    public void stopLocationService() { Log.e(TAG, "stopLocationService()");
         LocationServices.getFusedLocationProviderClient(this)
                 .removeLocationUpdates(locationCallback);
         stopForeground(true);
         stopSelf();
     }
 
+    public String getLatLng() {
+        return latitude + ", " + longitude;
+    }
+
+    @Override
+    public void onDestroy() { Log.e(TAG, "onDestroy()");
+        super.onDestroy();
+    }
 
 }

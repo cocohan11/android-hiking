@@ -44,14 +44,17 @@ import static com.example.iamhere.M_main.StringToBitmap;
 import static com.example.iamhere.M_main.URLtoBitmap;
 import static com.example.iamhere.M_share_3_join_Map.retrofit_퇴장업뎃_exit;
 import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
+import static com.example.iamhere.socket.Constants.ACTION_START_LOCATION_SERVICE;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Color;
@@ -63,6 +66,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -191,7 +195,30 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     // 명단
     ArrayList<ClientInfo> clientList = new ArrayList<>(); // 닉네임과 프사, 방장이 누구인지만 들어있음.
     sharingList_Adapter list_adapter; // 위의 chat_adapter와 함께 움직인다.
-    //방
+    // 서비스
+    private LocationService locationService; // 서비스 객체
+    private boolean isService = false; // 서비스 중인 확인용
+
+
+    /** activity와 service의 연결고리 */
+    private final ServiceConnection conn = new ServiceConnection() { // 컴포넌트(여기선 activity) + 서비스 연결
+        @Override // onBind() 이후 연결됨
+        public void onServiceConnected(ComponentName name, IBinder service) { // 서비스와 연결되었을 때 호출되는 메서드
+            Log.e(TAG, "onServiceConnected() ComponentName : "+name);
+            LocationService.MyBinder myBinder = (LocationService.MyBinder) service;
+            locationService = myBinder.getService(); // 서비스가 제공하는 메소드 호출하여 서비스쪽 객체를 전달받을수 있다.
+            isService = true;
+            Log.e(TAG, "onServiceConnected() isService : "+isService);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) { // 서비스와 연결이 끊겼을 때 호출되는 메서드
+            Log.e(TAG, "onServiceDisconnected() ComponentName : "+name);
+            isService = false;
+            Log.e(TAG, "onServiceDisconnected() isService : "+isService);
+        }
+    };
+
 
 
 //    ArrayList<ClientInfo> clientInfos = new ArrayList<>(); // 채팅서버에서 가져온 정보들을 안드에서도 차곡차곡 쌓는다.
@@ -363,11 +390,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                                 iamLeader = true; //방이 온전히 생성된 후 방장변수값 대입하기
 
                                 SharedPreferences.Editor editor = shared.edit();
-
                                 editor.putBoolean("iamLeader",true); //쉐어드에도 저장(스태틱변수와 한 쌍)
                                 editor.apply(); //실질 저장
-
-
 
 
                                 //경과시간 삽입
@@ -698,67 +722,27 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     } //~oMapReady()
 
 
-//    private int 위치메세지인가(String read4) {
-//
-//        try { // 3.위치
-//            double parseDouble = Double.parseDouble(read4); // str -> dou 했을 때
-//            Log.e(TAG, "parseDouble 성공...위치메세지다 parseDouble : "+parseDouble);
-//            return 3;
-//
-//        } catch (NumberFormatException e) { // 실패한다면 여기로
-//            Log.e(TAG, "parseDouble 실패... 입장/채팅/퇴장");
-//            return 0;
-//        }
-//
-//    }
-
-
     /** 서비스 시작 */
-    private void startLocationService() {
-        if (!isLocationServiceRunning()) { // 돌아가는 중 아니다. 그럼 돌아가라고 한다.
+    private void startLocationService() { Log.e(TAG, "startLocationService() isService : "+isService);
+        if (!isService) {
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
-            intent.setAction(Constants.ACTION_START_LOCATION_SERVICE);
-            startService(intent);
+            intent.setAction(ACTION_START_LOCATION_SERVICE);
+            bindService(intent, conn, Context.BIND_AUTO_CREATE); // 서비스와 연결에 대한 정의
             Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
-        } // 돌아가는 중이면 아무것도 없음
+            isService = true;
+
+        }
     }
 
     /** 서비스 정지 */
-    private void stopLocationService() {
-        if (isLocationServiceRunning()) { // 멈춰있는는중이다. 그럼 멈추라고 한다.
-            Intent intent = new Intent(getApplicationContext(), LocationService.class);
-            intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
-            startService(intent);
+    private void stopLocationService() { Log.e(TAG, "stopLocationService() isService : "+isService);
+
+        if (isService) {
+            locationService.stopLocationService(); // 서비스에서 돌아가던 위치불러오기 종료
+            unbindService(conn); // 서비스 연결 종료
             Toast.makeText(this, "Location service stopped", Toast.LENGTH_SHORT).show();
-        } // 멈춰있다면 아무것도 없음
-    }
-
-    /** 돌아가는 중인가? */
-    public boolean isLocationServiceRunning() { Log.e(TAG, "isLocationServiceRunning()");
-
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        Log.e(TAG, "activityManager : "+activityManager);
-        // ActivityManager는 activity, service, process에 정보를 제공하고 상호작용한다...
-        // getSystemService : 매개변수로 식별되는 시스템 서비스를 획득
-
-
-        if (activityManager != null) {
-            for (ActivityManager.RunningServiceInfo service : activityManager.getRunningServices(Integer.MAX_VALUE)) {
-                Log.e(TAG, "service : "+service);
-
-                if (LocationService.class.getName().equals(service.service.getClassName())) {
-                    Log.e(TAG, "LocationService.class.getName() : "+LocationService.class.getName());
-                    Log.e(TAG, "service.service.getClassName() : "+service.service.getClassName());
-
-                    if (service.foreground) {
-                        Log.e(TAG, "service.foreground is true");
-                        return true;
-                    } // getRunningServices : 현재 시스템에서 동작 중인 모든 서비스 목록을 얻을 수 있다.
-                } // RunningServiceInfo : 타입의 객체로 각 서비스의 정보가 반환됨
-            } // Service의 클래스명, 앱의 패키지명 등으로 이 앱의 서비스가 구동 중인지 판단할 수 있다.
-            return false;
+            isService = false;
         }
-        return false;
     }
 
 
@@ -969,9 +953,10 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 Log.e(TAG, "소켓연결() 입장전 h시간m분s초... null인가? : " + h시간m분s초);
                 Log.e(TAG, "소켓연결() 입장전 변수 확인 : "+ip+port+myName); //실질 방 생성은 여기이므로 소켓을 방입장하자마자 연결하는게 아니라 여기서 연결함
                 sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
-                소켓연결(iv_sendMessage, showRecyclerview, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
-                        mHandler, chat_adapter, chat_items, rv_chat, getApplicationContext(),  M_share_2_Map.this, roomName_num, marker_img, isRun, 네이버Map,
-                        clientList, list_adapter, rv_list, chronometer); //서버와 소켓을 연결한다.
+
+                //ㅡㅡㅡㅡㅡㅡㅡ
+                // 서비스 시작
+                //ㅡㅡㅡㅡㅡㅡㅡ
 
 
             }
@@ -986,6 +971,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
     }
+
 
     private void retrofit마커저장() {
 
@@ -1082,14 +1068,6 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ 소켓 통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
 
-
-
-
-
-
-
-
-
     public void 소켓연결(ImageView iv_sendMSG, ConstraintLayout showRV, // 발신
                      TextView fold, TextView tv_trackingStart, Dialog dialog_chat, Dialog dialog_leave, EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
                      Handler handler, chat_Adapter adapter, ArrayList<Chat> chat_items, RecyclerView rv_chat, Context context, Context activity, TextView roomName_num, ImageView marker_img, boolean isRun,
@@ -1108,10 +1086,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
         new Thread() { //error : android.os.NetworkOnMainThreadException 나기 때문에 스레드로 빼줘야함
             public void run() { //  this name : Thread-2
-                try {
+                try { Log.e(TAG, "소켓연결() ip : "+ip+" 포트 : "+port);
 
-                    Log.e(TAG, "소켓연결() Thread run");
-                    Log.e(TAG, "서버 주소 : "+ip+" 포트 : "+port);
 
                     socket = new Socket(ip, port); // 전역변수로 뺐구나. 소켓생성을 왜 여기서하나했네
                     Log.e(TAG, "소켓 : "+socket);
