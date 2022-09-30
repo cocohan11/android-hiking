@@ -6,6 +6,8 @@ import static com.example.iamhere.L_login.myImg;
 import static com.example.iamhere.L_login.myMarkerImg;
 import static com.example.iamhere.L_login.myName;
 import static com.example.iamhere.L_login.myRoom_no;
+import static com.example.iamhere.M_main.isService;
+import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.LocationService.pw;
 import static com.example.iamhere.socket.LocationService.socket;
 import static com.example.iamhere.L_login.경도;
@@ -283,6 +285,7 @@ public class ClientSender extends Thread {
                                             방퇴장처리(context); //퇴장 후 뒷처리 : 변수, 쉐어드 초기화
                                             socketClose_Exit(); // 로그 지저분해서 메소드로 만듦
                                             isRun = false; // 자기위치 찍기 종료
+
                                         }
                                     })
                                     .setPositiveButton("       취소       ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
@@ -326,7 +329,6 @@ public class ClientSender extends Thread {
                                                     isRun = false; // 자기위치 찍기 종료
                                                     소켓통신목적 = "퇴장"; // M_share_3_join_Map.class에서 퇴장할 때 토스트를 사용하기 위해(2안에서 context파라미터 사용해도 안됨;;)
                                                     Log.e(TAG, "퇴장 토스트를 띄우기 위한 변수 - 소켓통신목적:"+소켓통신목적); // M3에서 마커스레드 안에서 사용됨.
-
 
 
                                                 }

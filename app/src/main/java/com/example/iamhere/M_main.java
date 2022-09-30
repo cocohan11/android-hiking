@@ -20,8 +20,10 @@ import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.위도;
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_profile.BitmapToString;
+import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.iamhere.socket.Constants.PERMISSIONS;
+import static com.example.iamhere.socket.LocationService.socket;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -126,28 +128,8 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
     ArrayList<Marker> arr마커1개만존재 = new ArrayList<>(); //실시간 내 위치마커가 2개이상 존재하면 없애기 위한 배열
 
     // 서비스
-    static public LocationService locationService; // 서비스 객체
     static public boolean isService = false; // 서비스 중인 확인용
 
-    /** activity와 service의 연결고리 */
-    static public final ServiceConnection conn = new ServiceConnection() { // 컴포넌트(여기선 activity) + 서비스 연결
-        @Override // onBind() 이후 연결됨
-        public void onServiceConnected(ComponentName name, IBinder service) { String TAG = "onServiceConnected() "; // 서비스와 연결되었을 때 호출되는 메서드
-            Log.e(TAG, "ComponentName : "+name);
-            LocationService.MyBinder myBinder = (LocationService.MyBinder) service;
-            locationService = myBinder.getService(); // 서비스가 제공하는 메소드 호출하여 서비스쪽 객체를 전달받을수 있다.
-            isService = true;
-            Log.e(TAG, "isService : "+isService);
-        }
-
-        @Override
-        @SuppressLint("LongLogTag")
-        public void onServiceDisconnected(ComponentName name) { String TAG = "onServiceDisconnected() "; // 서비스와 연결이 끊겼을 때 호출되는 메서드
-            Log.e(TAG, "ComponentName : "+name);
-            isService = false;
-            Log.e(TAG, "isService : "+isService);
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -156,18 +138,8 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
         Log.e(TAG, "onCreate()");
         Log.e(TAG,"UserApiClient.getInstance() : "+ UserApiClient.getInstance());
         Log.e(TAG, "TalkApiClient.getInstance() : "+ TalkApiClient.getInstance());
-
-
-
-        /*서비스 리스트*/
-        ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(1000);
-
-        for(int  i=0;  i<rs.size();  i++){
-            ActivityManager.RunningServiceInfo  rsi  =  rs.get(i);
-            Log.e("run  service","Package  Name  :  "  +  rsi.service.getPackageName());
-            Log.e("run  service","Class  Name  :  "  +  rsi.service.getClassName());
-        }
+        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+        Log.e(TAG, "서비스 종료 후 돌아왔을 때 socket 은? : "+ socket);
 
         // 위치관리자 객체 생성성
         LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -176,15 +148,23 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
 
         // sns로그인 or 일반로그인 구분
         String getL_login_kakao = intent.getStringExtra("L_login_kakao");
-        Log.e(TAG, "get L_login_kakao :"+getL_login_kakao);
+        Log.e(TAG, "L_login_kakao :"+getL_login_kakao);
 
-        // 위치공유방 종료하고 넘어온 사람
-//        String stopService = intent.getStringExtra("stopService");
-//        Log.e(TAG, "stopService :"+stopService);
-//        if (stopService != null) {
-//            stopLocationService();
-//        }
+        // 서비스 명령 받았는지
+        String stopService = intent.getStringExtra("stopService");
+        Log.e(TAG, "stopService :"+stopService);
 
+
+        // 서비스 동작중인지 확인
+        Log.e(TAG, "isServiceRunning 젼: "+isServiceRunning(getApplicationContext()));
+        if (stopService != null && isServiceRunning(getApplicationContext())) { // 멈추라는 명령 + 서비스 실행중이면
+            Log.e(TAG, "isServiceRunning 서비스 멈춰라");
+
+
+
+//            new M_share_2_Map().stopLocationService(getApplicationContext()); // 서비스 종료
+            Log.e(TAG, "isServiceRunning 후 : "+isServiceRunning(getApplicationContext()));
+        }
 
 
         //자동로그인이 됐으면 서버로 보내서 데이터가져옴
@@ -421,15 +401,6 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
-//    /** 서비스 정지 */
-//    private void stopLocationService() { Log.e(TAG, "stopLocationService() isService : "+isService);
-//
-//        if (isService) {
-//            locationService.stopLocationService(); // 서비스에서 돌아가던 위치불러오기 종료
-////            unbindService(conn); // 서비스 연결 종료 // 메인스레드에서만 실행 가능 // 어차피 activity 종료되면서 서비스도 종료됨
-//            isService = false;
-//        }
-//    }
 
 
     // 네이버 지도
@@ -474,21 +445,6 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
         // 마커 스레드 : n초마다 찍힘
         //ㅡㅡㅡㅡㅡㅡ
         위도경도Thread(5); //마커찍는 스레드 //메인에서 사진마커는 필용없음(test용이었고 실제는 위치공유방에서 사용할 메소드)
-
-
-        //위치 오버레이
-        // (사용자의 위치를 나타내는 데 특화된 오버레이이로, 지도상에 단 하나만 존재)
-//        LocationOverlay locationOverlay = naverMap.getLocationOverlay(); //위치 인스턴스 생성x 왜냐면 유일무이..그래서 호출해옴
-//        locationOverlay.setVisible(true); //가시성 : 기본false
-//        locationOverlay.setIconWidth(100);
-//        locationOverlay.setIconHeight(110);
-//        file = new File(filePath); //경로를 통해 사진파일 객체 생성
-//        locationOverlay.setIcon(OverlayImage.fromFile(file)); //사각형이네..하하
-//        locationOverlay.setAnchor(new PointF(0.5f, 1)); //이미지가 가리키는 지점과 지정한 지점을 일
-//        locationOverlay.setIcon(OverlayImage.fromResource(R.drawable.white)); //사진+사진이 오래걸릴 것 같아서 pass
-        //정보창
-//        InfoWindow infoWindow = new InfoWindow();
-
         네이버Map = naverMap; //네이버Map 변수에 다시 대입해서 온전하게 만듦
         //이러고 바깥으로 나오면 스레드가 캡쳐함
 

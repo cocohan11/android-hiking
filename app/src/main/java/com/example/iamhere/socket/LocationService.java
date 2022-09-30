@@ -3,6 +3,8 @@ package com.example.iamhere.socket;
 
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_login.위도;
+import static com.example.iamhere.M_share_2_Map.isServiceRunning;
+import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 
 import android.Manifest;
 import android.app.NotificationChannel;
@@ -41,28 +43,17 @@ import java.util.Random;
 
 public class LocationService extends Service {
 
-    private String TAG = "LocationService.class";
-    private double latitude;
-    private double longitude;
-    private IBinder mBinder = new MyBinder(); // 외부로 데이터를 전달하려면 바인더를 사용한다.
 
     //채팅
     static public Socket socket; //서버와 연결될 소켓
     static public BufferedReader br; //서버와 연결될 소켓
     static public PrintWriter pw; //서버와 연결될 소켓
     static public final int port = 8888;
-    static public final String ip = "192.168.0.22"; // 2학원 ip주소
-//    static final String ip = "192.168.0.155"; // 3학원 ip주소
+//    static public final String ip = "192.168.0.22"; // 2학원 ip주소
+    static final String ip = "192.168.0.155"; // 3학원 ip주소
 //    static public final String ip = "172.20.10.4"; // 핫스팟 ip주소
+    private String TAG = "LocationService.class";
 
-
-
-    public class MyBinder extends Binder {
-        public LocationService getService() { // 서비스 객체를 리턴
-            Log.e(TAG, "getService()");
-            return LocationService.this;
-        }
-    }
 
 
     // 위치 업데이트 요청전에 위치 서비스에 연결하여 위치요청한다( <- ? )
@@ -81,13 +72,33 @@ public class LocationService extends Service {
     };
 
     @Override
-    public IBinder onBind(Intent intent) { // 액티비티에서 bindService() 를 실행하면 호출됨
-
-        Log.e(TAG, "onBind() intent.getAction(): "+intent.getAction());
+    public void onCreate() { Log.e(TAG, "onCreate()");
+        super.onCreate();
         createSocketAtService();
-        startLocationService(); // 백그라운드 위치 + 포그라운드 알림
+    }
 
-        return mBinder; // 리턴한 IBinder 객체는 서비스와 클라이언트 사이의 인터페이스 정의
+    @Override
+    public IBinder onBind(Intent intent) { Log.e(TAG, "onBind()"); // 액티비티에서 bindService() 를 실행하면 호출됨
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    // bindService는 해당X startService만 실행되는 메소드
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) { Log.e(TAG, "onStartCommand() intent : "+intent);
+
+        if (intent != null) {
+            String action = intent.getAction(); // mainActivity에서 시작버튼 클릭할 때 보내진 String값
+            if (action != null) {
+                if (action.equals(Constants.ACTION_START_LOCATION_SERVICE)) { // start도 stop도 startService에 intent 액션을 담아서 여기로 보냄
+                    startLocationService();
+                } else if (action.equals(Constants.ACTION_STOP_LOCATION_SERVICE)) {
+                    socketClose_Exit(); // 소켓 종료 // 제대로 되는거 맞음?
+                    stopLocationService();
+                    Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+                }
+            }
+        }
+        return super.onStartCommand(intent, flags, startId);
     }
 
 
@@ -105,8 +116,8 @@ public class LocationService extends Service {
                     e.printStackTrace();
                 } // 소켓 생성시점보다 스트림 불러오는 시점이 더 빨라서 에러남. 아예 방입장하자 마자로 옮김
         }}.start();
-
     }
+
     // 위치 정기 업데이트에 필요한 알림, 시스템 옵션
     private void startLocationService() {
         String channelID = "location_notification_channel";
@@ -128,7 +139,7 @@ public class LocationService extends Service {
                 channelID
         );
         notification.setSmallIcon(R.drawable.hiking);
-        notification.setContentTitle("Location Service");
+        notification.setContentTitle("등산방 참여");
         notification.setContentText("위치공유 중");
         notification.setAutoCancel(true);
         notification.setPriority(NotificationCompat.PRIORITY_MAX);
@@ -173,10 +184,6 @@ public class LocationService extends Service {
                 .removeLocationUpdates(locationCallback);
         stopForeground(true);
         stopSelf();
-    }
-
-    public String getLatLng() {
-        return latitude + ", " + longitude;
     }
 
     @Override

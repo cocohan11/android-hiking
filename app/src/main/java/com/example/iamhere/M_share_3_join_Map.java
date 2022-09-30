@@ -11,7 +11,6 @@ import static com.example.iamhere.L_login.방비번;
 import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.소켓통신목적;
 import static com.example.iamhere.L_login.위도;
-import static com.example.iamhere.M_main.locationService;
 import static com.example.iamhere.M_share_2_Map.retrofit객체;
 import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.M_share_2_Map.마커프사null이면set하기;
@@ -122,24 +121,6 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
     private String 방장닉넴;
 
 
-    /** activity와 service의 연결고리 */
-    private final ServiceConnection conn = new ServiceConnection() { // 컴포넌트(여기선 activity) + 서비스 연결
-        @Override // onBind() 이후 연결됨
-        public void onServiceConnected(ComponentName name, IBinder service) { // 서비스와 연결되었을 때 호출되는 메서드
-            Log.e(TAG, "onServiceConnected() ComponentName : "+name);
-            LocationService.MyBinder myBinder = (LocationService.MyBinder) service;
-            locationService = myBinder.getService(); // 서비스가 제공하는 메소드 호출하여 서비스쪽 객체를 전달받을수 있다.
-            isService = true;
-            Log.e(TAG, "onServiceConnected() isService : "+isService);
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) { // 서비스와 연결이 끊겼을 때 호출되는 메서드
-            Log.e(TAG, "onServiceDisconnected() ComponentName : "+name);
-            isService = false;
-            Log.e(TAG, "onServiceDisconnected() isService : "+isService);
-        }
-    };
 
 
     @Override
@@ -371,7 +352,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
 
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
             intent.setAction(ACTION_START_LOCATION_SERVICE);
-            bindService(intent, conn, Context.BIND_AUTO_CREATE); // 소켓생성, 서비스 시작
+            startService(intent);
             Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
             isService = true;
 

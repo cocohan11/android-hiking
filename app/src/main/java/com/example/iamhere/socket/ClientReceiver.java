@@ -13,7 +13,6 @@ import static com.example.iamhere.M_share_3_join_Map.retrofit_퇴장업뎃_exit;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
 import android.util.Log;
@@ -25,6 +24,7 @@ import android.widget.Toast;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.iamhere.M_share_2_Map;
 import com.example.iamhere.Model.Chat;
 import com.example.iamhere.Model.ClientInfo;
 import com.example.iamhere.Recyclerview.chat_Adapter;
@@ -146,9 +146,9 @@ public class ClientReceiver extends Thread{
 
 
 
-                    /*************************************
-                     * 채팅, 위치, 퇴장, 강제종료, 운동시작
-                     ************************************/
+                /*************************************
+                 * 채팅, 위치, 퇴장, 강제종료, 운동시작
+                 ************************************/
                 } else if (json instanceof JSONObject) { // 한 사람에 대한 정보
 
 
@@ -246,9 +246,9 @@ public class ClientReceiver extends Thread{
 
 
 
-                    /**********************
-                     * 위치 : n초마다 실행
-                     **********************/
+                /**********************
+                 * 위치 : n초마다 실행
+                 **********************/
                 } else if (lastlyClient.getPurposes().equals("위치")) { Log.e(TAG, "if문 - 위치");
 
 
@@ -300,9 +300,9 @@ public class ClientReceiver extends Thread{
                     }
 
 
-                    /*********
-                     * 퇴장
-                     *********/
+                /*********
+                 * 퇴장
+                 *********/
                 } else if (lastlyClient.getPurposes().equals("퇴장")) { // 나말고 누가 퇴장했다.
 
 
@@ -341,9 +341,9 @@ public class ClientReceiver extends Thread{
 
 
 
-                    /***********
-                     * 강제종료
-                     ***********/
+                /***********
+                 * 강제종료
+                 ***********/
                 } else if (lastlyClient.getPurposes().equals("강제종료")) {
 
                     // 방퇴장처리를 여기말고 위치스레드안에 위치시킨 이유 : activity.class를 파라미터로 전달이 안 되서.
@@ -356,11 +356,9 @@ public class ClientReceiver extends Thread{
                     socketClose_Exit();
 
 
-
-
-                    /***********
-                     * 운동시작
-                     ***********/
+                /***********
+                 * 운동시작
+                 ***********/
                 } else if (lastlyClient.getPurposes().equals("운동시작")) {
 
 //                    소켓통신목적 = lastlyClient.getPurposes(); // M_share_3_join_Map.class에서 강제종료할 때 사용하기 위해

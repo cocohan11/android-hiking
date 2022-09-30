@@ -14,12 +14,9 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import static com.example.iamhere.M_main.conn;
 import static com.example.iamhere.L_login.h시간m분s초;
 import static com.example.iamhere.L_login.iamLeader;
 import static com.example.iamhere.M_main.isService;
-import static com.example.iamhere.M_main.locationService;
-import static com.example.iamhere.socket.LocationService.ip;
 import static com.example.iamhere.L_login.myDate;
 import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myImg;
@@ -37,7 +34,6 @@ import static com.example.iamhere.L_login.마커리스트;
 import static com.example.iamhere.L_login.마커합성bitmap;
 import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.방비번;
-import static com.example.iamhere.L_login.소켓통신목적;
 import static com.example.iamhere.L_login.위도;
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_login.bitmapCapture;
@@ -48,6 +44,7 @@ import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.socket.Constants.ACTION_START_LOCATION_SERVICE;
 import static com.example.iamhere.socket.Constants.REQUEST_CODE_LOCATION_PERMISSION;
 import static com.example.iamhere.socket.LocationService.pw;
+import static com.example.iamhere.socket.LocationService.socket;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -230,6 +227,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         Log.e(TAG, "방이름 : "+방이름);
         ID();
         변수확인(); //로그
+        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
 
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -707,48 +705,48 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     } //~oMapReady()
 
 
-    private void socket_SendEntry() {
-
-        new Thread() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-            public void run() { // // 메세지 전송하고 소켓끊기
-
-                Log.e(TAG, "유저정보 : " + myEmail+"/"+myName+"/"+myRoom_no+"/"+방이름+"/"+myImg+"/"+myMarkerImg+"/"+위도+"/"+경도);
-                pw.println("입장"); // 채팅내용
-                pw.flush();
-
-            }
-        }.start();
-
-    }
 
     /** 서비스 시작 */
     private void startLocationService() { Log.e(TAG, "startLocationService() isService : "+isService);
+        Log.e(TAG, "startLocationService() socket : "+socket); // null
+        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
 
-        if (!isService) {
+        if (!isServiceRunning(getApplicationContext())) {
 
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
             intent.setAction(ACTION_START_LOCATION_SERVICE);
-            bindService(intent, conn, Context.BIND_AUTO_CREATE); // 소켓생성, 서비스 시작
-            Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
-            isService = true;
-
-
-            /*서비스 리스트*/
-            ActivityManager am = (ActivityManager)getApplicationContext().getSystemService(Context.ACTIVITY_SERVICE);
-            List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(1000);
-            Log.e(TAG, "startLocationService() am : "+am);
-            Log.e(TAG, "startLocationService() rs : "+rs);
-
-            for(int  i=0;  i<rs.size();  i++){
-                ActivityManager.RunningServiceInfo  rsi  =  rs.get(i);
-                Log.e("22 run  service","Package  Name  :  "  +  rsi.service.getPackageName());
-                Log.e("22 run  service","Class  Name  :  "  +  rsi.service.getClassName());
-            }
+            startService(intent);
 
         }
     }
 
 
+    /** 서비스 종료 */
+    public void stopLocationService(Context context) {
+        Log.e(TAG, "stopLocationService() socket : "+socket);
+        Log.e(TAG, "stopLocationService() isServiceRunning : "+isServiceRunning(context));
+        Log.e(TAG, "stopLocationService() socket.isClosed()  "+socket.isClosed());
+
+        if (isServiceRunning(context)) {
+
+            Intent intent = new Intent(context, LocationService.class);
+            intent.setAction(Constants.ACTION_STOP_LOCATION_SERVICE);
+            startService(intent);
+
+        }
+    }
+
+    public static boolean isServiceRunning(Context context) { Log.e("isServiceRunning()", "서비스가 실행중인지");
+        ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
+
+
+        for (ActivityManager.RunningServiceInfo rsi : am.getRunningServices(Integer.MAX_VALUE)) {
+            if (LocationService.class.getName().equals(rsi.service.getClassName())) //[서비스이름]에 본인 것을 넣는다.
+            return true;
+        }
+
+        return false;
+    }
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ http통신 ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 
@@ -962,7 +960,6 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 캡쳐Thread(); //전체화면 캡쳐 후 3등분의 중간부분만 static변수인 bitmapCapture에 담기
 
                 Log.e(TAG, "소켓연결() 입장전 h시간m분s초... null인가? : " + h시간m분s초);
-                Log.e(TAG, "소켓연결() 입장전 변수 확인 : "+ip+port+myName); //실질 방 생성은 여기이므로 소켓을 방입장하자마자 연결하는게 아니라 여기서 연결함
                 sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
 
                 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -971,6 +968,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 스트림연결(iv_sendMessage, showRecyclerview, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
                         handler2, chat_adapter, chat_items, rv_chat, getApplicationContext(), M_share_2_Map.this, roomName_num, marker_img, isRun, 네이버Map,
                         clientList, list_adapter, rv_list, chronometer);
+
+                Log.e(TAG, "isServiceRunning() : " + isServiceRunning(getApplicationContext()));
 
             }
 
@@ -1218,16 +1217,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         context.startActivity(intent);
 
+        Log.e(TAG, "stopLocationService() isServiceRunning : "+isServiceRunning(context));
 
-        /*서비스 리스트*/
-        ActivityManager am = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-        List<ActivityManager.RunningServiceInfo> rs = am.getRunningServices(1000);
-
-        for(int  i=0;  i<rs.size();  i++){
-            ActivityManager.RunningServiceInfo  rsi  =  rs.get(i);
-            Log.e("run  service","Package  Name  :  "  +  rsi.service.getPackageName());
-            Log.e("run  service","Class  Name  :  "  +  rsi.service.getClassName());
-        }
 
 
 //        locationService.stopLocationService(); // 서비스에서 돌아가던 위치불러오기 종료
