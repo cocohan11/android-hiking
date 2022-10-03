@@ -99,7 +99,7 @@ public class L_login extends AppCompatActivity {
     static public ArrayList<Double> 마커경도리스트 = new ArrayList<>(); //2차배열이 제일 좋긴한데 retrofit으로할거고, 할 수 있는 만큼 속도내자
 
     // 채팅
-    static public final int 모든위치업뎃_sec = 5;
+    static public final int 모든위치업뎃_sec = 10;
     static public String 소켓통신목적=""; // 입장/위치/채팅/강제종료/퇴장
     static public String h시간m분s초; //서버에 보낼 시간분초 문자열. 조회할 때 조작없이 바로 보여질 데이터다
 

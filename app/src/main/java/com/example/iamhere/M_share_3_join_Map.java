@@ -1,7 +1,6 @@
 package com.example.iamhere;
 
 import static com.example.iamhere.L_login.h시간m분s초;
-import static com.example.iamhere.M_main.isService;
 import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myRoomActive;
 import static com.example.iamhere.L_login.myRoom_no;
@@ -11,11 +10,13 @@ import static com.example.iamhere.L_login.방비번;
 import static com.example.iamhere.L_login.방이름;
 import static com.example.iamhere.L_login.소켓통신목적;
 import static com.example.iamhere.L_login.위도;
+import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.M_share_2_Map.retrofit객체;
 import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.M_share_2_Map.마커프사null이면set하기;
 import static com.example.iamhere.M_share_2_Map.방퇴장처리;
 import static com.example.iamhere.socket.Constants.ACTION_START_LOCATION_SERVICE;
+import static com.example.iamhere.socket.LocationService.socket;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
@@ -346,15 +347,16 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
 
 
     /** 서비스 시작 */
-    public void startLocationService() { Log.e(TAG, "startLocationService() isService : "+isService);
+    public void startLocationService() {
 
-        if (!isService) {
+        Log.e(TAG, "startLocationService() socket null : "+socket); // null
+        Log.e(TAG, "startLocationService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
+
+        if (!isServiceRunning(getApplicationContext()))  {
 
             Intent intent = new Intent(getApplicationContext(), LocationService.class);
             intent.setAction(ACTION_START_LOCATION_SERVICE);
             startService(intent);
-            Toast.makeText(this, "Location service started", Toast.LENGTH_SHORT).show();
-            isService = true;
 
         }
     }

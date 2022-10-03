@@ -6,7 +6,6 @@ import static com.example.iamhere.L_login.myImg;
 import static com.example.iamhere.L_login.myMarkerImg;
 import static com.example.iamhere.L_login.myName;
 import static com.example.iamhere.L_login.myRoom_no;
-import static com.example.iamhere.M_main.isService;
 import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.LocationService.pw;
 import static com.example.iamhere.socket.LocationService.socket;
@@ -410,6 +409,73 @@ public class ClientSender extends Thread {
     /*********************************************************************************************/
 
 
+    public void setIv_sendMSG(ImageView iv_sendMSG) {
+        this.iv_sendMSG = iv_sendMSG;
+    }
+
+    public void setBtn_trackingStart(ImageView btn_trackingStart) {
+        this.btn_trackingStart = btn_trackingStart;
+    }
+
+    public void setShowRV(ConstraintLayout showRV) {
+        this.showRV = showRV;
+    }
+
+    public void setFold(TextView fold) {
+        this.fold = fold;
+    }
+
+    public void setTv_trackingStart(TextView tv_trackingStart) {
+        this.tv_trackingStart = tv_trackingStart;
+    }
+
+    public void setDialog_chat(Dialog dialog_chat) {
+        this.dialog_chat = dialog_chat;
+    }
+
+    public void setDialog_leave(Dialog dialog_leave) {
+        this.dialog_leave = dialog_leave;
+    }
+
+    public void setEt_chat_msg(EditText et_chat_msg) {
+        this.et_chat_msg = et_chat_msg;
+    }
+
+    public void setBtn_chat_send(Button btn_chat_send) {
+        this.btn_chat_send = btn_chat_send;
+    }
+
+    public void setBtn_chat_nope(Button btn_chat_nope) {
+        this.btn_chat_nope = btn_chat_nope;
+    }
+
+    public void setBtn_share_exit(Button btn_share_exit) {
+        this.btn_share_exit = btn_share_exit;
+    }
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public void setActivity(Context activity) {
+        this.activity = activity;
+    }
+
+    public void setRun(boolean run) {
+        isRun = run;
+    }
+
+    public void setClientList(ArrayList<ClientInfo> clientList) {
+        this.clientList = clientList;
+    }
+
+    /*********************************************************************************************/
+
+
     //시작버튼 누르면 db에 운동시작한 시간이 저장된다. 보냈다는걸 알 수 있는 의미없는 데이터를 보낸다.
     @SuppressLint("LongLogTag")
     private void retrofit_Room_RoomUser업뎃(Context context) {
@@ -435,10 +501,10 @@ public class ClientSender extends Thread {
         //ㅡㅡㅡㅡㅡ
         Sharing SharingRoomCreate = retrofit.create(Sharing.class);   // 레트로핏 인터페이스 객체 구현
         Log.e(TAG, "retrofit_Room_RoomUser업뎃()... 위도 :"+위도+"/경도:"+경도);
-        String 추출한주소 = 위경도to주소(위도,경도, context);
-        Log.e(TAG, "추출한주소? : "+추출한주소); //응답값은 db에 잘 들어갔는지 확인만하기. 사용할 일은 없음
+//        String 추출한주소 = 위경도to주소(위도,경도, context);
+        Log.e(TAG, "추출한주소? : "+"추출한주소"); //응답값은 db에 잘 들어갔는지 확인만하기. 사용할 일은 없음
 
-        Call<Sharing_room> call = SharingRoomCreate.startTracking(myRoom_no, myEmail, 추출한주소); //보냄 : 방번호로 특정, email로 방 참여자 명단 만들기(명단은 '등산중'에 참여한 사람만 해당된다.)
+        Call<Sharing_room> call = SharingRoomCreate.startTracking(myRoom_no, myEmail, "추출한주소"); //보냄 : 방번호로 특정, email로 방 참여자 명단 만들기(명단은 '등산중'에 참여한 사람만 해당된다.)
 
         // 주
         // 소
@@ -467,10 +533,11 @@ public class ClientSender extends Thread {
     private String 위경도to주소(double lat, double lng, Context context) { //long은 안되나?
 
         String TAG = "위경도to주소() ";
-        Log.e(TAG, "위경도to주소() lat : "+lat+" / lng : "+lng);
+        Log.e(TAG, "lat : "+lat+" / lng : "+lng);
         String 추출된주소 = null;
 
         Geocoder g = new Geocoder(context, Locale.getDefault());
+
         try {
             List<Address> address = g.getFromLocation(lat, lng, 10);
             String 주소 = address.get(0).getAddressLine(0);

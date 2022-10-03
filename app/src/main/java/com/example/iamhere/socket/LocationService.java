@@ -48,12 +48,13 @@ public class LocationService extends Service {
     static public Socket socket; //서버와 연결될 소켓
     static public BufferedReader br; //서버와 연결될 소켓
     static public PrintWriter pw; //서버와 연결될 소켓
-    static public final int port = 8888;
-//    static public final String ip = "192.168.0.22"; // 2학원 ip주소
-    static final String ip = "192.168.0.155"; // 3학원 ip주소
-//    static public final String ip = "172.20.10.4"; // 핫스팟 ip주소
+    private final int port = 8888;
+    private final String ip = "192.168.0.22"; // 2학원 ip주소
+//    private final String ip = "192.168.0.155"; // 3학원 ip주소
+//    private final String ip = "172.20.10.4"; // 핫스팟 ip주소
     private String TAG = "LocationService.class";
-
+    static public ClientSender sender;
+    static public ClientReceiver receiver;
 
 
     // 위치 업데이트 요청전에 위치 서비스에 연결하여 위치요청한다( <- ? )
@@ -91,10 +92,11 @@ public class LocationService extends Service {
             if (action != null) {
                 if (action.equals(Constants.ACTION_START_LOCATION_SERVICE)) { // start도 stop도 startService에 intent 액션을 담아서 여기로 보냄
                     startLocationService();
+                    Log.e(TAG, "onStartCommand() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+
                 } else if (action.equals(Constants.ACTION_STOP_LOCATION_SERVICE)) {
-                    socketClose_Exit(); // 소켓 종료 // 제대로 되는거 맞음?
                     stopLocationService();
-                    Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+                    Log.e(TAG, "onStartCommand() isServiceRunning : "+isServiceRunning(getApplicationContext()));
                 }
             }
         }
@@ -104,22 +106,24 @@ public class LocationService extends Service {
 
     // 소켓 객체를 서비스에서 생성한다.
     private void createSocketAtService() { Log.e(TAG, "createSocketAtService() ip : "+ip+" 포트 : "+port);
+        Log.e(TAG, "createSocketAtService 소켓생성 전 : "+socket);
 
         new Thread() { //error : android.os.NetworkOnMainThreadException 나기 때문에 스레드로 빼줘야함
             public void run() { //  this name : Thread-2
                 try {
 
                     socket = new Socket(ip, port);
-                    Log.e(TAG, "소켓 : "+socket);
+                    Log.e(TAG, "createSocketAtService 소켓생성 후 : "+socket);
 
                 } catch (IOException e) {
                     e.printStackTrace();
                 } // 소켓 생성시점보다 스트림 불러오는 시점이 더 빨라서 에러남. 아예 방입장하자 마자로 옮김
         }}.start();
+
     }
 
     // 위치 정기 업데이트에 필요한 알림, 시스템 옵션
-    private void startLocationService() {
+    private void startLocationService() { Log.e(TAG, "startLocationService() ");
         String channelID = "location_notification_channel";
         NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -188,6 +192,7 @@ public class LocationService extends Service {
 
     @Override
     public void onDestroy() { Log.e(TAG, "onDestroy()");
+        socketClose_Exit(); // 소켓 종료 // 제대로 되는거 맞음? // 서비스 종료될 때 소켓종료해보자
         super.onDestroy();
     }
 

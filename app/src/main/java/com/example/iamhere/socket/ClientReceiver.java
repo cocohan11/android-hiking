@@ -93,6 +93,59 @@ public class ClientReceiver extends Thread{
         }
     }
 
+
+    public void setHandler(Handler handler) {
+        this.handler = handler;
+    }
+
+    public void setChat_items(ArrayList<Chat> chat_items) {
+        this.chat_items = chat_items;
+    }
+
+    public void setChat_adapter(chat_Adapter chat_adapter) {
+        this.chat_adapter = chat_adapter;
+    }
+
+    public void setRv_chat(RecyclerView rv_chat) {
+        this.rv_chat = rv_chat;
+    }
+
+    public void setRoomName_num(TextView roomName_num) {
+        this.roomName_num = roomName_num;
+    }
+
+    public void setRv_list(RecyclerView rv_list) {
+        this.rv_list = rv_list;
+    }
+
+    public void setMarker_img(ImageView marker_img) {
+        this.marker_img = marker_img;
+    }
+
+    public void setRun(boolean run) {
+        isRun = run;
+    }
+
+    public void set네이버Map(NaverMap 네이버Map) {
+        this.네이버Map = 네이버Map;
+    }
+
+    public void setChronometer(Chronometer chronometer) {
+        this.chronometer = chronometer;
+    }
+
+    public void setList_adapter(sharingList_Adapter list_adapter) {
+        this.list_adapter = list_adapter;
+    }
+
+    public void setClientList(ArrayList<ClientInfo> clientList) {
+        this.clientList = clientList;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @SuppressLint("SetTextI18n")
     @Override

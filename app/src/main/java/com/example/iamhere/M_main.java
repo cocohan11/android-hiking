@@ -128,7 +128,6 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
     ArrayList<Marker> arr마커1개만존재 = new ArrayList<>(); //실시간 내 위치마커가 2개이상 존재하면 없애기 위한 배열
 
     // 서비스
-    static public boolean isService = false; // 서비스 중인 확인용
 
 
     @Override

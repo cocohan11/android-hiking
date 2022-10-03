@@ -16,7 +16,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import static com.example.iamhere.L_login.h시간m분s초;
 import static com.example.iamhere.L_login.iamLeader;
-import static com.example.iamhere.M_main.isService;
 import static com.example.iamhere.L_login.myDate;
 import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myImg;
@@ -26,7 +25,6 @@ import static com.example.iamhere.L_login.myPw;
 import static com.example.iamhere.L_login.myRoom_no;
 import static com.example.iamhere.L_login.mySmallBitmapImg;
 import static com.example.iamhere.L_login.mysnsLogin;
-import static com.example.iamhere.socket.LocationService.port;
 import static com.example.iamhere.L_login.마커위도리스트;
 import static com.example.iamhere.L_login.마커경도리스트;
 import static com.example.iamhere.L_login.myRoomActive;
@@ -38,12 +36,10 @@ import static com.example.iamhere.L_login.위도;
 import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_login.bitmapCapture;
 import static com.example.iamhere.M_main.StringToBitmap;
-import static com.example.iamhere.M_main.URLtoBitmap;
-import static com.example.iamhere.M_share_3_join_Map.retrofit_퇴장업뎃_exit;
+import static com.example.iamhere.socket.LocationService.receiver;
+import static com.example.iamhere.socket.LocationService.sender;
 import static com.example.iamhere.socket.ClientReceiver.socketClose_Exit;
 import static com.example.iamhere.socket.Constants.ACTION_START_LOCATION_SERVICE;
-import static com.example.iamhere.socket.Constants.REQUEST_CODE_LOCATION_PERMISSION;
-import static com.example.iamhere.socket.LocationService.pw;
 import static com.example.iamhere.socket.LocationService.socket;
 
 import android.Manifest;
@@ -160,7 +156,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     FusedLocationSource locationSource; //런타임권한얻은 현재위치값
     final String[] PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}; //대략,정확한 위치 권한
     final int LOCATION_PERMISSION_REQUEST_CODE = 1000; //런타임권한요청코드
-    boolean isRun = true; //스레드 멈추기용도 - 화면전환시
+//    boolean isRun = true; //스레드 멈추기용도 - 화면전환시
     Handler handler2 = new Handler(); //메소드안에 선언하면 사용할 수가 없네(에러:루퍼...)
     TextView roomName_num; //방이름(인원)
     //숨겨질 뷰들
@@ -227,7 +223,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         Log.e(TAG, "방이름 : "+방이름);
         ID();
         변수확인(); //로그
-        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext())); // 서비스 실행중?
+        Log.e(TAG, "socket null이면 서비스 중 아님: "+socket); // 서비스 실행중?
 
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -415,7 +412,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                             retrofit_퇴장업뎃_removeRoom(h시간m분s초); // 방장이 나가면 방이 터짐
                             방퇴장처리(getApplicationContext()); // 변수, 쉐어드 초기화
                             socketClose_Exit(); // 로그 지저분해서 메소드로 만듦
-                            isRun = false; // 자기 위치 찍기 종료
+//                            isRun = false; // 자기 위치 찍기 종료
 
 
                         }
@@ -516,6 +513,19 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             Log.e(TAG, "마커리스트 변수가 비어있다느거야?" + 마커리스트);
             Log.e(TAG, "방이름" + 방이름);
             roomName_num.setText(방이름+"(1명)"); //방이름+인원
+
+            //
+            //
+            // 연결시키기
+            //
+            //
+            //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+            // set view to socket at Service again
+            //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+            Log.e(TAG, "재입장이면 남아있는 소켓에 뷰 다시 연결시키기");
+            스트림연결(iv_sendMessage, showRecyclerview, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
+                    handler2, chat_adapter, chat_items, rv_chat, getApplicationContext(), M_share_2_Map.this, roomName_num, marker_img, true, 네이버Map,
+                    clientList, list_adapter, rv_list, chronometer);
 
 
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -707,9 +717,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
     /** 서비스 시작 */
-    private void startLocationService() { Log.e(TAG, "startLocationService() isService : "+isService);
-        Log.e(TAG, "startLocationService() socket : "+socket); // null
-        Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+    private void startLocationService() {
+        Log.e(TAG, "startLocationService() socket null : "+socket); // null
+        Log.e(TAG, "startLocationService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
 
         if (!isServiceRunning(getApplicationContext())) {
 
@@ -717,7 +727,17 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             intent.setAction(ACTION_START_LOCATION_SERVICE);
             startService(intent);
 
+
+            //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+            // 소켓연결 at Service
+            //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+            스트림연결(iv_sendMessage, showRecyclerview, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
+                    handler2, chat_adapter, chat_items, rv_chat, getApplicationContext(), M_share_2_Map.this, roomName_num, marker_img, false, 네이버Map,
+                    clientList, list_adapter, rv_list, chronometer);
+
+            Log.e(TAG, "isServiceRunning() : " + isServiceRunning(getApplicationContext()));
         }
+
     }
 
 
@@ -931,10 +951,17 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             @Override
             public void onResponse(Call<Sharing_room> call, Response<Sharing_room> response) {
 
+
+                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+                // 순서 주의!! [ myRoom_no / 방장닉넴 ] 필요한 함수들 모음
+                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+                chat_adapter = new chat_Adapter(getApplicationContext(), chat_items, myName, clientList);
+                list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, myName);
+
                 //ㅡㅡㅡㅡㅡㅡㅡ
-                // 서비스 시작
+                // 서비스 시작 : 소켓 불멸
                 //ㅡㅡㅡㅡㅡㅡㅡ
-                startLocationService(); // 서비스에서 소켓 연결함
+                startLocationService(); // 어댑터 뒤에 위치하기
 
                 //ㅡㅡㅡㅡ
                 // 결과값
@@ -948,28 +975,16 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 Log.e(TAG, "리턴값1 myRoom_no : " + myRoom_no); Log.e(TAG, "리턴값2 myRoomActive : " + myRoomActive);
 
 
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                // 순서 주의!! [ myRoom_no / 방장닉넴 ] 필요한 함수들 모음
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                chat_adapter = new chat_Adapter(getApplicationContext(), chat_items, myName, clientList);
-                list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, myName);
-
-
                 쉐어드저장(); //통신결과가 바로 변수에 대입이 안됨
                 retrofit마커저장(); //비슷하게 통신을 2번 보내니 방이 생성이 안될 때가 있어서 결과받고 실행
                 캡쳐Thread(); //전체화면 캡쳐 후 3등분의 중간부분만 static변수인 bitmapCapture에 담기
 
+                //ㅡㅡㅡㅡㅡㅡ
+                // 명단 보기
+                //ㅡㅡㅡㅡㅡㅡ
                 Log.e(TAG, "소켓연결() 입장전 h시간m분s초... null인가? : " + h시간m분s초);
                 sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
 
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                // 소켓연결 at Service
-                //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-                스트림연결(iv_sendMessage, showRecyclerview, fold, fold, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, iv_compass, // iv_compass 입력한 이유 : 참여자는 넣을 필요없어서 null 넣으니까 에러나서 임시방편으로 삽입
-                        handler2, chat_adapter, chat_items, rv_chat, getApplicationContext(), M_share_2_Map.this, roomName_num, marker_img, isRun, 네이버Map,
-                        clientList, list_adapter, rv_list, chronometer);
-
-                Log.e(TAG, "isServiceRunning() : " + isServiceRunning(getApplicationContext()));
 
             }
 
@@ -1087,39 +1102,93 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                      NaverMap 네이버Map, ArrayList<ClientInfo> clientList, sharingList_Adapter list_adapter, RecyclerView rv_list, Chronometer chronometer) { // 수신
 
 
-        //ㅡㅡㅡㅡㅡㅡㅡ
-        // 서비스 시작 : 앱이 종료되어도 서비스에 소켓이 살아있어서 상대방에 내 위치전송 가능
-        //ㅡㅡㅡㅡㅡㅡㅡ
-        Log.e(TAG, "startLocationService() 앱이 종료되어도 서비스덕분에 소켓이 살아있음");
+                    // 재입장
+                    if (sender != null) { Log.e(TAG, "스트림연결() 서비스가 동작하고있어서 view를 다시 set해준다."); // 소켓을 불러왔다면
+
+                        senderSetViewAgain(iv_sendMSG, showRV, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
+                                handler, context, activity, isRun, clientList);
+
+//                        recieverSetViewAgain(handler, chat_items, adapter, rv_chat, roomName_num, marker_img, isRun, 네이버Map, clientList, list_adapter, rv_list, context, chronometer);
+
+                    // 첫입장
+                    } else {  Log.e(TAG, "스트림연결() 첫 입장"); // 뷰 파괴됐을테니 set // error : view클릭리스너가 안 된다.
 
 
-        // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        // 안드로이드 클라이언트의 소켓과 서버의 소켓이 연결한다.
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        new Thread() { //error : android.os.NetworkOnMainThreadException 나기 때문에 스레드로 빼줘야함
-            public void run() { //  this name : Thread-2
-                try {
+                        // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+                        // 안드로이드 클라이언트의 소켓과 서버의 소켓이 연결한다.
+                        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+                        new Thread() { //error : android.os.NetworkOnMainThreadException 나기 때문에 스레드로 빼줘야함
+                            public void run() { //  this name : Thread-2
+                                try {
 
-                    Thread.sleep(200); // 소켓이 null이라서 잠깐 간격을 벌려줌
+                                    Thread.sleep(500); // 소켓이 null이라서 잠깐 간격을 벌려줌
 
-                    // 채팅 송신용 쓰레드 생성
-                    ClientSender sender = new ClientSender(iv_sendMSG, showRV, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
-                            handler, context, activity, isRun, clientList); //방이름도 같이 서버에 전달(어느방에 입장했는지)
-                    sender.start();
+                                    Log.e(TAG, "socket null인가? 0.5초 후 반복 "+socket); // !=null
+                                    Log.e(TAG, "스트림연결() sender null이면 서비스도 종료된거임 : "+sender);
+
+                                    sender = new ClientSender(iv_sendMSG, showRV, fold, tv_trackingStart, dialog_chat, dialog_leave, et_chat_msg, btn_chat_send, btn_chat_nope, btn_share_exit, btn_trackingStart,
+                                            handler, context, activity, isRun, clientList); //방이름도 같이 서버에 전달(어느방에 입장했는지)
+                                    sender.start(); // 채팅 송신용 쓰레드 생성
 
 
-                    // 채팅 수신용 쓰레드 생성
-                    ClientReceiver receiver = new ClientReceiver(handler, chat_items, adapter, rv_chat, roomName_num, marker_img, isRun, 네이버Map, clientList, list_adapter, rv_list, context, chronometer);
-                    receiver.start(); //만약 스레드로 안 만들면 전송할 때까지 채팅 못 받음
+                                    // 채팅 수신용 쓰레드 생성
+                                    receiver = new ClientReceiver(handler, chat_items, adapter, rv_chat, roomName_num, marker_img, isRun, 네이버Map, clientList, list_adapter, rv_list, context, chronometer);
+                                    receiver.start(); //만약 스레드로 안 만들면 전송할 때까지 채팅 못 받음
 
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
-            }}.start();
+                                    } catch (InterruptedException e) { Log.e(TAG, "socket이 널이라서 에러남?");
+                                        if (socket == null) { Log.e(TAG, "socket이 널이라서 에러남"); }
+                                        e.printStackTrace();
+                                    }
+
+                            }}.start();
+                    }
 
     }
 
+
+    private void senderSetViewAgain(ImageView iv_sendMSG, ConstraintLayout showRV, TextView fold, TextView tv_trackingStart,
+                              Dialog dialog_chat, Dialog dialog_leave,
+                              EditText et_chat_msg, Button btn_chat_send, Button btn_chat_nope, Button btn_share_exit, ImageView btn_trackingStart,
+                              Handler handler, Context context, Context activity, boolean isRun, ArrayList<ClientInfo> clientList) { Log.e(TAG, "senderSetViewAgain() 입장");
+
+        sender.setIv_sendMSG(iv_sendMSG);
+        sender.setShowRV(showRV);
+        sender.setFold(fold);
+        sender.setTv_trackingStart(tv_trackingStart);
+        sender.setDialog_chat(dialog_chat);
+        sender.setDialog_leave(dialog_leave);
+        sender.setEt_chat_msg(et_chat_msg);
+        sender.setBtn_chat_send(btn_chat_send);
+        sender.setBtn_chat_nope(btn_chat_nope);
+        sender.setBtn_share_exit(btn_share_exit);
+        sender.setBtn_trackingStart(btn_trackingStart);
+        sender.setHandler(handler);
+        sender.setContext(context);
+        sender.setActivity(activity);
+        sender.setRun(isRun);
+        sender.setClientList(clientList);
+
+    }
+
+    private void recieverSetViewAgain(Handler handler, ArrayList<Chat> chat_items, chat_Adapter chat_adapter, RecyclerView rv_chat, TextView roomName_num,
+                                      ImageView marker_img, boolean isRun, NaverMap 네이버Map, ArrayList<ClientInfo> clientList, sharingList_Adapter list_adapter,
+                                      RecyclerView rv_list, Context context, Chronometer chronometer) {
+
+        receiver.setHandler(handler);
+        receiver.setChat_items(chat_items);
+        receiver.setChat_adapter(chat_adapter);
+        receiver.setRv_chat(rv_chat);
+        receiver.setRoomName_num(roomName_num);
+        receiver.setMarker_img(marker_img);
+        receiver.set네이버Map(네이버Map);
+        receiver.setClientList(clientList);
+        receiver.setList_adapter(list_adapter);
+        receiver.setRv_list(rv_list);
+        receiver.setContext(context);
+        receiver.setChronometer(chronometer);
+
+    }
 
 
 
@@ -1673,7 +1742,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                     마커프사null이면set하기(); //없다면 만들어준다. 한 번만. 스레드안에서.
                 }
 
-                while ((isRun)) { //false가 되면 멈춤 - 화면전환시
+                while ((true)) { //false가 되면 멈춤 - 화면전환시
 
                     Log.e(TAG, "마커합성bitmap 333 : "+마커합성bitmap);
 
@@ -1777,8 +1846,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.e(TAG, "onDestroy... isRun=false");
-        isRun = false; //스레드 종료
+        Log.e(TAG, "onDestroy...");
+//        isRun = false; //스레드 종료
     }
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
