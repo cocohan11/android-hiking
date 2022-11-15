@@ -1,5 +1,7 @@
 package com.example.iamhere.Model;
 
+import androidx.annotation.NonNull;
+
 public class Chat {
 
     private String user_name;
@@ -24,5 +26,9 @@ public class Chat {
         return message;
     }
 
-
+    @NonNull
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

@@ -155,7 +155,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
         Log.e(TAG, "recyclerview adapter 2개 생성 + 장착");
         chat_adapter = new chat_Adapter(getApplicationContext(), chat_items, 방장닉넴, clientList);
         list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, 방장닉넴);
-        Map2.sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext());
+//        Map2.sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext());
 
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -479,7 +479,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
 
                     // 콜백받아서 Map2의 clientList에 대입
                     JSONArray jsonArrayClientList = (JSONArray) msg.obj;
-                    Map2.getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat, list_adapter, chat_adapter);
+//                    Map2.getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat, list_adapter, chat_adapter);
                     break;
 
 
@@ -492,7 +492,7 @@ public class M_share_3_join_Map extends AppCompatActivity implements OnMapReadyC
                     ClientInfo client_채팅 = Map2.returnOneClient_입장외(jsonObject_채팅); // 클라 1명 정보
                     Chat chat = new Chat(client_채팅.getName(), client_채팅.getMsg(), client_채팅.getChatTime()); // 채팅에 필요한 정보 3개
                     chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-                    Map2.recyclerviewUpdate_listAndChat(rv_list, rv_chat, list_adapter, chat_adapter, chat_items); // 화면 갱신
+//                    Map2.recyclerviewUpdate_listAndChat(rv_list, rv_chat, list_adapter, chat_adapter, chat_items); // 화면 갱신
                     break;
 
 

@@ -155,40 +155,40 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     final String[] PERMISSIONS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}; //대략,정확한 위치 권한
     final int LOCATION_PERMISSION_REQUEST_CODE = 1000; //런타임권한요청코드
     boolean isRun = true; //스레드 멈추기용도 - 화면전환시
-    Handler handler2 = new Handler(); //메소드안에 선언하면 사용할 수가 없네(에러:루퍼...)
-    TextView roomName_num; //방이름(인원)
+    private Handler handler2 = new Handler(); //메소드안에 선언하면 사용할 수가 없네(에러:루퍼...)
+    private TextView roomName_num; //방이름(인원)
     //숨겨질 뷰들
     private TextView fold; //접고피는 ^ 버튼
-    TextView textView12; //예상종료시간
-    Button btn_share_Friends, btn_share_exit; //나중에 카톡으로 공유하기, 퇴장하면 위치공유버튼 눌러도 참가했던 방으로 안 감
-    ConstraintLayout showRecyclerview; //리사이클러뷰와 버튼,텍스트 합쳐서 한꺼번에 숨기기
-    TextView btnRouteDone; //'경로지정완료' 버튼을 누르면 gone되어서 다신 보이지 않기
-    TextView tv_trackingStart; //모든인원이 참여됐다면 운동시작버튼 누르라고 함
-    FrameLayout topLayout; //최상단 '방제(n명)'레이아웃. 경로정할 땐 숨김
-    ImageView iv_sendMSG, iv_setting, iv_compass; //우측초록버튼 1 : 메세지보내기, 2:설정, 3: 나침반
-    ImageView btn_trackingStart, marker_img; //운동시작 버튼 누르면 그 때부터 시간이 카운트 됨 / 재사용할 마커이미지
+    private TextView textView12; //예상종료시간
+    private Button btn_share_Friends, btn_share_exit; //나중에 카톡으로 공유하기, 퇴장하면 위치공유버튼 눌러도 참가했던 방으로 안 감
+    private ConstraintLayout showRecyclerview; //리사이클러뷰와 버튼,텍스트 합쳐서 한꺼번에 숨기기
+    private TextView btnRouteDone; //'경로지정완료' 버튼을 누르면 gone되어서 다신 보이지 않기
+    private TextView tv_trackingStart; //모든인원이 참여됐다면 운동시작버튼 누르라고 함
+    private FrameLayout topLayout; //최상단 '방제(n명)'레이아웃. 경로정할 땐 숨김
+    private ImageView iv_sendMSG, iv_setting, iv_compass; //우측초록버튼 1 : 메세지보내기, 2:설정, 3: 나침반
+    private ImageView btn_trackingStart, marker_img; //운동시작 버튼 누르면 그 때부터 시간이 카운트 됨 / 재사용할 마커이미지
     //마커
-    TextView routeNum; //마커 순서 123...
+    private TextView routeNum; //마커 순서 123...
     int route123 = 0; //숫자 +1씩추가되기
-    Dialog dialog, dialog_chat, dialog_leave; //마커 삭제하기위한 다이얼로그
-    Button button_del, button2_cancel; //다이얼로그 - 삭제, 취소
+    private Dialog dialog, dialog_chat, dialog_leave; //마커 삭제하기위한 다이얼로그
+    private Button button_del, button2_cancel; //다이얼로그 - 삭제, 취소
     //경로
-    TextView notice; //경로마커 10개까지 찍을 수 있다는 안내
-    Marker 마커if문용;
+    private TextView notice; //경로마커 10개까지 찍을 수 있다는 안내
+    private Marker 마커if문용;
     //시간
-    Chronometer chronometer; //경과시간이 보이는 위젯. 그래서 따로 핸들러를 사용하지 않았다.
+    private Chronometer chronometer; //경과시간이 보이는 위젯. 그래서 따로 핸들러를 사용하지 않았다.
     long 시작한시점, time, 주어진시간; //시작한시간을 기준점으로 삼고 그 차이를 뷰에 삽입한다. //지나간 시간
     final int 초 = 1000;
     int h, m, s; //쉐어드 저장
     //채팅
-    RecyclerView rv_chat, rv_list; // 채팅창, 명단
-    EditText et_chat_msg; //메시지 입력란
-    Button btn_chat_send, btn_chat_nope; //메세지 보내기, 취소 버튼
+    private RecyclerView rv_chat, rv_list; // 채팅창, 명단
+    private EditText et_chat_msg; //메시지 입력란
+    private Button btn_chat_send, btn_chat_nope; //메세지 보내기, 취소 버튼
     private ArrayList<Chat> chat_items = new ArrayList<>(); //채팅정보가 이 배열에 쌓임 (유저이름,메세지,시간)
     private chat_Adapter chat_adapter; //채팅창 리사이클러뷰에 대한 어댑터
     // 명단
-    private ArrayList<ClientInfo> clientList = new ArrayList<>(); // 닉네임과 프사, 방장이 누구인지만 들어있음.
-    private sharingList_Adapter list_adapter; // 위의 chat_adapter와 함께 움직인다.
+    public ArrayList<ClientInfo> clientList = new ArrayList<>(); // 닉네임과 프사, 방장이 누구인지만 들어있음.
+    public sharingList_Adapter list_adapter; // 위의 chat_adapter와 함께 움직인다.
     // 콜백
     public Messenger mServiceCallback = null; // a -> s
     public Messenger mClientCallback = new Messenger(new CallbackHandler()); // s -> a받을 데이터
@@ -258,14 +258,14 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 //        retrofit_Room_RoomUser업뎃(getApplicationContext()); //등산시작했다고 신호를 보내면 현재시간을 DB에 업뎃 //방운동시작시간 =/= 개인운동시작시간 (왜냐면 도중에 들어온사람은?)
 
 
-        if (!iamLeader) { // 참여자라면 앞의 단계 다 건너뛰기
+        if (!iamLeader) { Log.e(TAG, "iamLeader false 나는 참여자다 : "+iamLeader); // 참여자라면 앞의 단계 다 건너뛰기
 
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
             // 순서 주의!! [ myRoom_no / 방장닉넴 ] 필요한 함수들 모음
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
             chat_adapter = new chat_Adapter(getApplicationContext(), chat_items, myName, clientList);
             list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, myName);
-            sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
+            sharingList_AND_chat_rv_Adapter장착(rv_chat, rv_list, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
 
 
             //ㅡㅡㅡㅡㅡㅡㅡ
@@ -335,7 +335,8 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡ
         btnRouteDone.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view) { Log.e(TAG, "iamLeader true 나는 방장이다 : "+iamLeader);
+
 
                 //다시 물어볼까말까>버튼이 너무커서 실수로 누를 수도 있을 것 같아. 물어보자
                 /*
@@ -381,7 +382,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                                 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
                                 chat_adapter = new chat_Adapter(getApplicationContext(), chat_items, myName, clientList);
                                 list_adapter = new sharingList_Adapter(getApplicationContext(), clientList, myName);
-                                sharingList_AND_chat_rv_Adapter장착(rv_chat, chat_adapter, rv_list, list_adapter, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
+                                sharingList_AND_chat_rv_Adapter장착(rv_chat, rv_list, getApplicationContext()); //보이기시작한 채팅창에 어댑터를 장착한다. 가독성을 위해 함수로 만들었다.
+                                Log.e(TAG, "완료 재확인 (다이얼로그) 예 버튼");
+                                Log.e(TAG, "멘토링 clientList : "+clientList);
 
 
                                 //ㅡㅡㅡㅡㅡㅡㅡ
@@ -909,10 +912,11 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
                     Toast.makeText(getApplicationContext(), "clientList를 콜백받았습니다.", Toast.LENGTH_SHORT).show(); //이동하기전에 토스트외치기
                     Log.e(TAG, "jsonArray 입장/퇴장 콜백 :" + msg.obj);
+                    Log.e(TAG, "CallbackHandler() clientList.size() :" + clientList.size());
 
-                    // 콜백받아서 Map2의 clientList에 대입
+                    // 콜백받아서 clientList에 대입
                     JSONArray jsonArrayClientList = (JSONArray) msg.obj;
-                    getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat, list_adapter, chat_adapter);
+                    getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat);
                     break;
 
 
@@ -924,8 +928,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
                     ClientInfo client_채팅 = returnOneClient_입장외(jsonObject_채팅); // 클라 1명 정보
                     Chat chat = new Chat(client_채팅.getName(), client_채팅.getMsg(), client_채팅.getChatTime()); // 채팅에 필요한 정보 3개
+
                     chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-                    recyclerviewUpdate_listAndChat(rv_list, rv_chat, list_adapter, chat_adapter, chat_items); // 화면 갱신
+                    recyclerviewUpdate_listAndChat(rv_list, rv_chat); // 화면 갱신
                     break;
 
 
@@ -1023,65 +1028,55 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
     @SuppressLint("NotifyDataSetChanged")
-    public void recyclerviewUpdate_listAndChat(RecyclerView rv_list, RecyclerView rv_chat, sharingList_Adapter list_adapter, chat_Adapter chat_adapter, ArrayList<Chat> chat_items) {
+    public void recyclerviewUpdate_listAndChat(RecyclerView rv_list, RecyclerView rv_chat) {
+
+        Log.e(TAG, "recyclerviewUpdate_listAndChat() clientList.size() :" + clientList.size());
+
+        list_adapter.notifyDataSetChanged();
+        chat_adapter.notifyDataSetChanged(); // 채팅창
 
         rv_list.scrollToPosition(chat_items.size()-1);
         rv_chat.scrollToPosition(chat_items.size()-1);
-
-        list_adapter.notifyDataSetChanged(); // 명단 업데이트
-        chat_adapter.notifyDataSetChanged(); // 채팅창
 
     }
 
     @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     public void getMsg_UIupdate(JSONArray jsonArray, ArrayList<Chat> chat_items, TextView roomName_num,
-                                RecyclerView rv_list, RecyclerView rv_chat, sharingList_Adapter list_adapter, chat_Adapter chat_adapter) {
-        TAG = "getMsg_UIupdate()";
-
+                                RecyclerView rv_list, RecyclerView rv_chat) { TAG = "getMsg_UIupdate()";
         Log.e(TAG, "jsonArray Map2 :" + jsonArray);
 
-        // 모든 참여자에 대한 정보 (없는 사람만 추가)
 
-//        new Thread(() -> { // thread에러나서 해줘야함
-
-
-
-        new Handler().post(new Runnable() { // UI 업뎃
-            @Override
-            public void run() {
-
-                try {
-                    returnOneClient_명단reset(jsonArray); // 참여자 명단 업뎃
-                    Log.e(TAG, "입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
-                } catch (JSONException e) { e.printStackTrace(); }
-
-                // 마지막 입장한 참여자
-                ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
-
-                // 채팅창 업뎃뎃
-                Chat chat = new Chat("", lastlyClient.getMsg(), ""); // 파라미터 3개 중 2개 비워두기
-                chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-
-                roomName_num.setText(방이름+"("+clientList.size()+"명)"); // 방이름(n명)
-                recyclerviewUpdate_listAndChat(rv_list, rv_chat, list_adapter, chat_adapter, chat_items); // 화면 갱신
-                Log.e(TAG, "list_adapter, chat_adapter 업뎃");
-
-            } //post : 다른 스레드로 메세지(객체)를 전달하는 함수
-        });
+        new Thread(() -> { // thread에러나서 해줘야함
+            try {
+                clientList = returnOneClient_명단reset(jsonArray); // 참여자 명단 업뎃
+                Log.e(TAG, "입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
+            } catch (JSONException e) { e.printStackTrace(); }
+        }).start();
 
 
 
-//        }).start();
+        try { // UI 업뎃
+            Thread.sleep(500); // 시간차 때문에 sleep // 문제 : clientList를 스레드로 리턴받는터라 size가 반영이 안 됐음
+
+            // 마지막 입장한 참여자
+            ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
+
+            // 채팅창 업뎃
+            Chat chat = new Chat("", lastlyClient.getMsg(), ""); // 파라미터 3개 중 2개 비워두기
+            chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
+
+            Log.e(TAG, "111 lastlyClient.getMsg() :" + lastlyClient.getMsg());
+            Log.e(TAG, "111 chat_items :" + chat_items);
+            Log.e(TAG, "111 clientList.size : "+ clientList.size());
+            Log.e(TAG, "111 chat_items.size : "+ chat_items.size());
 
 
+            roomName_num.setText(방이름+"("+clientList.size()+"명)"); // 방이름(n명)
+            recyclerviewUpdate_listAndChat(rv_list, rv_chat); // 화면 갱신
 
+            Log.e(TAG, "list_adapter, chat_adapter 업뎃");
 
-        // UI 업뎃
-//        try {
-//            Thread.sleep(500); // 시간차 때문에 sleep // 문제 : clientList를 스레드로 리턴받는터라 size가 반영이 안 됐음
-//
-//
-//        } catch (InterruptedException e) { e.printStackTrace(); }
+        } catch (InterruptedException e) { e.printStackTrace(); }
 
 
     }
@@ -1131,11 +1126,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     public ArrayList<ClientInfo> returnOneClient_명단reset(JSONArray jsonArray) throws JSONException { String TAG = "returnOneClient_입장() ";
 
 
-        ClientInfo client = null;
-        ArrayList<ClientInfo> getClientListFromServer = new ArrayList<>();
-
+        ClientInfo client;
+        clientList.clear();
         Log.e(TAG, "clientList.size : "+clientList.size());
-        Log.e(TAG, "getClientListFromServer : "+getClientListFromServer);
 
         for(int i=0; i<jsonArray.length(); i++) { // 내가 이 방에 처음 입장했을 때 실행. 현재 참여중인 방참여자 모두 가져옴. 마커로 비교해서 없는 사람만 추가하기
 
@@ -1167,23 +1160,15 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
             // 안드에서 가지고있는 명단 vs 채팅서버에서 가져온 이멜 비교
-//            if (clientList.size() <= i) { // 인덱스로 하니까 에러나서 size로 함. 어차피 서버에서 순서대로 받아오기 때문
-
-            // 클라이언트 한 명 정보에 저장하기
             client = new ClientInfo(purposes, email, chatFrom, Img, markerImg, msg, chatTime, chatFrom, Lat, Lng, null, URLtoBitmap(markerImg)); // 마커는 다음 메소드에서 적용
-            getClientListFromServer.add(client);
-            clientList = getClientListFromServer;
-            Log.e(TAG, "client 한 명 : "+client);
+            clientList.add(client);
+            Log.e(TAG, "client 한 명 : "+client); // 클라이언트 한 명 정보에 저장하기
 
-//            } else {
-//                Log.e(TAG, "클라 추가X 이미 가진 명단임/ clientList size: "+clientList.size() +clientList);
-//            }
 
         } // ~for()
 
-
-        Log.e(TAG, "getClientListFromServer.size() : "+getClientListFromServer.size());
         Log.e(TAG, "clientList.size() : "+clientList.size());
+        // 객체에 대입하면 객체 주소가 바뀐다!!!!!!! 주의 !!!!!!
 
 
         return clientList; // 한 사람. 마지막으로 들어온 당사자 정보
@@ -1623,7 +1608,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
 
-    public void sharingList_AND_chat_rv_Adapter장착(RecyclerView rv_chat, chat_Adapter chat_adapter, RecyclerView rv_list, sharingList_Adapter sharingList_adapter, Context context) {
+    public void sharingList_AND_chat_rv_Adapter장착(RecyclerView rv_chat, RecyclerView rv_list, Context context) {
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
         // 리사이클러뷰 어댑터 장착
@@ -1638,7 +1623,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         LinearLayoutManager layoutManager2 = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
         rv_list.setLayoutManager(layoutManager2); //보이는 형식, 아래로 추가됨
-        rv_list.setAdapter(sharingList_adapter); //최종모습의 recyclerView에 어댑터를 장착
+        rv_list.setAdapter(list_adapter); //최종모습의 recyclerView에 어댑터를 장착
 
     }
 
