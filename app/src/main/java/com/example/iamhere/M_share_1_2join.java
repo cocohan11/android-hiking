@@ -123,12 +123,14 @@ public class M_share_1_2join extends AppCompatActivity {
 
 
                     //위치공유방 지도로 이동
-                    Intent intent = new Intent(M_share_1_2join.this, M_share_3_join_Map.class); //참여자는 M_share_3_join_Map 위치공유방에 입장
+//                    Intent intent = new Intent(M_share_1_2join.this, M_share_3_join_Map.class); //참여자는 M_share_3_join_Map 위치공유방에 입장
+                    Intent intent = new Intent(M_share_1_2join.this, M_share_2_Map.class); //참여자는 M_share_3_join_Map 위치공유방에 입장
                     intent.putExtra("방장닉넴", response.body().getUserNickName());
                     Log.e(TAG, "입장 가능");
 
                     startActivity(intent); //플래그로 스택정리 안 한다. 지도3에서 뒤로가기 누를 때 플래그로 처리할 예정
                     Log.e(TAG, "startActivity()");
+
 
 
                 } else {

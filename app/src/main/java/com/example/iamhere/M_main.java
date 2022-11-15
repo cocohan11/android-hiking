@@ -23,7 +23,6 @@ import static com.example.iamhere.L_profile.BitmapToString;
 import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.iamhere.socket.Constants.PERMISSIONS;
-import static com.example.iamhere.socket.LocationService.socket;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -69,7 +68,6 @@ import android.widget.Toast;
 
 import com.example.iamhere.Interface.Sharing;
 import com.example.iamhere.Model.Sharing_room;
-import com.example.iamhere.socket.LocationService;
 import com.kakao.sdk.talk.TalkApiClient;
 import com.kakao.sdk.user.UserApiClient;
 import com.naver.maps.geometry.LatLng;
@@ -138,7 +136,7 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
         Log.e(TAG,"UserApiClient.getInstance() : "+ UserApiClient.getInstance());
         Log.e(TAG, "TalkApiClient.getInstance() : "+ TalkApiClient.getInstance());
         Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
-        Log.e(TAG, "서비스 종료 후 돌아왔을 때 socket 은? : "+ socket);
+//        Log.e(TAG, "서비스 종료 후 돌아왔을 때 socket 은? : "+ socket);
 
         // 위치관리자 객체 생성성
         LocationManager manager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
@@ -345,12 +343,17 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
                 if(myRoomActive) { // 입장중 = true 이면
 
                     //방장인지 참여자인지 나누기
+                    intent = new Intent(getApplicationContext(), M_share_2_Map.class); //바로 지도(위치공유중이던 방)으로 이동
+
+
+                    //방장인지 참여자인지 나누기
                     if (iamLeader) {
                         intent = new Intent(getApplicationContext(), M_share_2_Map.class); //바로 지도(위치공유중이던 방)으로 이동
 
                     } else {
                         intent = new Intent(getApplicationContext(), M_share_3_join_Map.class); //바로 지도(위치공유중이던 방)으로 이동
                     }
+
 
                     //아마 여기에 더 추가될 내용이 있을듯
                     //방 찾아가는걸 여기에 넣어야될 것 같음
@@ -689,6 +692,7 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
                                 marker.setIcon(OverlayImage.fromResource(R.drawable.hiking)); //통신할 때 마커까지 업데이트됨
                             }
                         }
+
                     });
                     try {
                         Thread.sleep(1000*sec);

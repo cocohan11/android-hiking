@@ -28,9 +28,9 @@ public class chat_Adapter extends RecyclerView.Adapter<chat_Adapter.ViewHolder> 
 
     String TAG = "커스덤어댑터";
     Context context;
-    ArrayList<Chat> items = new ArrayList<Chat>(); //arraylist안에 생성자로 만든 n개의 데이터가 들어있다.
+    ArrayList<Chat> items; //arraylist안에 생성자로 만든 n개의 데이터가 들어있다.
     //해당 인덱스안에 0:[김김김, 1234] 1:[박박박,4345]...이런식을 들어있는거임
-    ArrayList<ClientInfo> clientList = new ArrayList<>(); // 명단
+    ArrayList<ClientInfo> clientList; // 명단
 //    String 방장이름; // 방장이면 글자색상을 변경해주기위해
 
 

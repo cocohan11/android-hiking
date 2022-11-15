@@ -82,13 +82,14 @@
         <activity
             android:name=".L_login"
             android:exported="true">
-
             <!-- 첫 액티비티를 여기로 하겠다 -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+
 
             <!-- 카카오 공유 클릭하면 입장하는 곳을 여기로 하겠다 -->
             <intent-filter>
@@ -118,8 +119,12 @@
                     android:scheme="kakao45268cd1f4853c061305952aadd29a90" />
             </intent-filter>
         </activity>
+        <activity android:name=".copy.Map2_stickodeTest"
+            android:exported="true">
+        </activity>
+
         <service
-            android:name=".socket.LocationService"
+            android:name=".socket.myService"
             android:enabled="true"
             android:exported="false" />
     </application>

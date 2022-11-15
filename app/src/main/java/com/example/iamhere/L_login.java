@@ -40,7 +40,6 @@ import com.example.iamhere.Interface.Sharing;
 import com.example.iamhere.Interface.kakaoLogin;
 import com.example.iamhere.Model.Login_find;
 import com.example.iamhere.Model.Sharing_room;
-import com.example.iamhere.socket.LocationService;
 import com.kakao.sdk.auth.model.OAuthToken;
 import com.kakao.sdk.user.UserApiClient;
 import com.kakao.sdk.user.model.AccessTokenInfo;
@@ -98,12 +97,6 @@ public class L_login extends AppCompatActivity {
     static public ArrayList<Double> 마커위도리스트 = new ArrayList<>(); //재입장하면 다 날라가버려서 static변수로 넣음
     static public ArrayList<Double> 마커경도리스트 = new ArrayList<>(); //2차배열이 제일 좋긴한데 retrofit으로할거고, 할 수 있는 만큼 속도내자
 
-    // 채팅
-    static public final int 모든위치업뎃_sec = 10;
-    static public String 소켓통신목적=""; // 입장/위치/채팅/강제종료/퇴장
-    static public String h시간m분s초; //서버에 보낼 시간분초 문자열. 조회할 때 조작없이 바로 보여질 데이터다
-
-//    static boolean isRun = true; // 위치공유방 마커 스레드 멈추기용도 - 화면전환시
     private String TAG = "L_login";
     private EditText et_email, et_pw;
     private Button btn_doLogin;
@@ -112,7 +105,6 @@ public class L_login extends AppCompatActivity {
     //카카오 로그인 api
     private ImageView img_kakaoLogin;
     private TextView tv_goJoin;
-    private WebView wView;      // 웹뷰
     private boolean bitmapImg; //쉐어드값 확인
     private boolean BoolImg; //값유무확인용
     private String 카톡토큰; //스플래시 판별용
@@ -1021,7 +1013,7 @@ public class L_login extends AppCompatActivity {
         tv_pw_reissue = (TextView) findViewById(R.id.tv_pw_reissue); //비밀번호 분실
         img_kakaoLogin = (ImageView) findViewById(R.id.img_kakaoLogin); //카카오톡 로그인 api 버튼
         tv_goJoin = (TextView) findViewById(R.id.tv_goJoin); //회원가입하러가기
-        wView = (WebView) findViewById(R.id.webview); //test
+//        wView = (WebView) findViewById(R.id.webview); //test
     }
 
 }
