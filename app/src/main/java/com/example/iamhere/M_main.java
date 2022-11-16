@@ -23,6 +23,7 @@ import static com.example.iamhere.L_profile.BitmapToString;
 import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.Constants.LOCATION_PERMISSION_REQUEST_CODE;
 import static com.example.iamhere.socket.Constants.PERMISSIONS;
+import static com.example.iamhere.socket.myService.socket;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -136,6 +137,8 @@ public class M_main extends AppCompatActivity implements OnMapReadyCallback { //
         Log.e(TAG,"UserApiClient.getInstance() : "+ UserApiClient.getInstance());
         Log.e(TAG, "TalkApiClient.getInstance() : "+ TalkApiClient.getInstance());
         Log.e(TAG, "startLocationService() isServiceRunning : "+isServiceRunning(getApplicationContext()));
+        Log.e(TAG, "socket : "+socket);
+
 //        Log.e(TAG, "서비스 종료 후 돌아왔을 때 socket 은? : "+ socket);
 
         // 위치관리자 객체 생성성

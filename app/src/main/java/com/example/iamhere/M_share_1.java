@@ -2,6 +2,8 @@ package com.example.iamhere;
 
 import static com.example.iamhere.L_login.bitmapCapture;
 import static com.example.iamhere.L_login.myRoomActive;
+import static com.example.iamhere.M_share_2_Map.isServiceRunning;
+import static com.example.iamhere.socket.myService.socket;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -27,6 +29,8 @@ public class M_share_1 extends AppCompatActivity {
         setContentView(R.layout.activity_mshare1);
         Log.e(TAG, "onCreate()");
         ID();
+        Log.e(TAG, "3 M_share_1.class isServiceRunning true : "+isServiceRunning(getApplicationContext()));
+        Log.e(TAG, "3 socket : "+socket);
 
 
         //이미 위치공유방에 입장해있다면

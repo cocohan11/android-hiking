@@ -35,12 +35,10 @@ import static com.example.iamhere.L_login.경도;
 import static com.example.iamhere.L_login.bitmapCapture;
 import static com.example.iamhere.M_main.StringToBitmap;
 import static com.example.iamhere.M_main.URLtoBitmap;
-import static com.example.iamhere.socket.myService.br;
 import static com.example.iamhere.socket.myService.pw;
 import static com.example.iamhere.socket.myService.h시간m분s초;
 import static com.example.iamhere.socket.myService.socket;
-//import static com.example.iamhere.socket.LocationService.socket;
-
+import static com.example.iamhere.socket.myService.socketClose_Exit;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -130,6 +128,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import kotlin.Unit;
 import kotlin.jvm.functions.Function2;
@@ -260,6 +259,11 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         if (!iamLeader) { Log.e(TAG, "iamLeader false 나는 참여자다 : "+iamLeader); // 참여자라면 앞의 단계 다 건너뛰기
 
+            //ㅡㅡㅡㅡㅡㅡㅡㅡ
+            // 마커찍는 스레드 : 참여자일 때(방장일 때도 따로 메소드 주기)
+            //ㅡㅡㅡㅡㅡㅡㅡㅡ
+//            위도경도Thread(5);
+
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
             // 순서 주의!! [ myRoom_no / 방장닉넴 ] 필요한 함수들 모음
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -370,6 +374,10 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                                 // 방장 진입 단계(activity) 1.방이름   2.마커   3.시작버튼   4.운동중
                                 // 中 3단계
 
+                                //ㅡㅡㅡㅡㅡㅡㅡㅡ
+                                // 마커찍는 스레드 : 방장일 때(참여자일 때도 따로 메소드 주기)
+                                //ㅡㅡㅡㅡㅡㅡㅡㅡ
+//                                위도경도Thread(5);
 
                                 //ㅡㅡㅡㅡㅡㅡ
                                 // 화면 캡쳐 : 비트맵으로 3등분 중 중간만 잘르기. 기록 리사이클러뷰에 넣을 거임
@@ -549,30 +557,34 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                                     public void run() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
                                         Log.e(TAG, "소켓 (전송) run()에 들어옴");
 
+
                                         if (iamLeader) {
                                             if (pw != null) {
+
+
                                                 pw.println("강제종료");
                                                 pw.flush();
+
+
+                                                Log.e(TAG, "1 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
+                                                socketClose_Exit(); // 소켓 끊기. 매번 방에 참여할 때마다 연결하기
+                                                stopBindService(getApplicationContext());
+                                                방퇴장처리(getApplicationContext());
+
                                             } else {
                                                 방퇴장처리(getApplicationContext());
                                             }
                                         } else {
                                             Log.e(TAG, "iamLeader == false 인 경우 퇴장이라고 출력");
+                                            Log.e(TAG, "startBindService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
+
                                             pw.println("퇴장");
                                             pw.flush();
 
-                                            // 참여자 본인 화면 퇴장 처리
-                                            try {
-                                                socket.close(); // 소켓을 close해도 객체가 null인건 아니다다
-                                                br.close(); // sender는 어차피 일회성 객체라서 닫을 필요 없으
-                                                방퇴장처리(getApplicationContext());
-                                                Log.e(TAG, "1 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
 
-                                            } catch (IOException e) {
-                                                e.printStackTrace();
-                                            }
-
+                                            방퇴장처리(getApplicationContext()); // 참여자 본인 화면 퇴장 처리
                                         }
+
 
                                     }
                                 }.start(); // 소켓 activity -> chatting Server -> service --callback--> activity
@@ -908,15 +920,18 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
                 /** 입장 or 퇴장 콜백 */
-                case myService.MSG_ENTRY_EXIT: // Array통으로 받아서 입장인지 퇴장인지 판별
+                case myService.MSG_ENTRY_EXIT: // Array통으로 받아서 입장인지 퇴장인지 판별, 퇴장 - 남은 사람들만 업뎃
 
                     Toast.makeText(getApplicationContext(), "clientList를 콜백받았습니다.", Toast.LENGTH_SHORT).show(); //이동하기전에 토스트외치기
                     Log.e(TAG, "jsonArray 입장/퇴장 콜백 :" + msg.obj);
                     Log.e(TAG, "CallbackHandler() clientList.size() :" + clientList.size());
 
-                    // 콜백받아서 clientList에 대입
+                    // 채팅서버-서비스-콜백 clientList 에 대입
                     JSONArray jsonArrayClientList = (JSONArray) msg.obj;
-                    getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat);
+                    getMsg_UIupdate(jsonArrayClientList, chat_items, roomName_num, rv_list, rv_chat); // 채팅, 명단, 위치마커 업뎃
+
+                    Log.e(TAG, "2 handleMessage() isServiceRunning true : "+isServiceRunning(getApplicationContext()));
+                    Log.e(TAG, "socket : "+socket);
                     break;
 
 
@@ -968,6 +983,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 case myService.MSG_LOCATION:
 
                     Log.e(TAG, "위치 콜백");
+                    JSONObject jsonObject_위치 = (JSONObject) msg.obj; // 콜백받아서 형변환
+
+
                     break;
 
 
@@ -1042,48 +1060,71 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
     @SuppressLint({"NotifyDataSetChanged", "SetTextI18n"})
     public void getMsg_UIupdate(JSONArray jsonArray, ArrayList<Chat> chat_items, TextView roomName_num,
-                                RecyclerView rv_list, RecyclerView rv_chat) { TAG = "getMsg_UIupdate()";
-        Log.e(TAG, "jsonArray Map2 :" + jsonArray);
+                                RecyclerView rv_list, RecyclerView rv_chat) { TAG = "getMsg_UIupdate()";  Log.e(TAG, "jsonArray Map2 :" + jsonArray);
 
 
         new Thread(() -> { // thread에러나서 해줘야함
-            try {
-                clientList = returnOneClient_명단reset(jsonArray); // 참여자 명단 업뎃
-                Log.e(TAG, "입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
-            } catch (JSONException e) { e.printStackTrace(); }
+
+                    try {
+
+                        returnOneClient_명단reset(jsonArray); // 참여자 명단 업뎃, 위치마커 설정
+                        Log.e(TAG, "1 입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
+
+                    } catch (JSONException e) { e.printStackTrace();
+                    } finally { // try가 끝난 뒤 무조건 실행되는 UI 변경
+                        runOnUiThread(new Runnable() {
+                            public void run() {
+//                                try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); } // 위 스레드가 끝나기도 전에 실행되서 sleep줌
+
+
+                                // 마지막 입장한 참여자
+                                Log.e(TAG, "2 입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
+                                ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
+
+
+                                // 채팅창 데이터 추가
+                                Chat chat = new Chat("", lastlyClient.getMsg(), ""); // 파라미터 3개 중 2개 비워두기
+                                chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
+
+                                Log.e(TAG, "111 lastlyClient.getMsg() :" + lastlyClient.getMsg());
+                                Log.e(TAG, "111 chat_items :" + chat_items);
+                                Log.e(TAG, "111 clientList.size : "+ clientList.size()); Log.e(TAG, "111 chat_items.size : "+ chat_items.size());
+
+
+                                // UI 업뎃
+                                roomName_num.setText(방이름+"("+clientList.size()+"명)"); // 방이름(n명)
+                                recyclerviewUpdate_listAndChat(rv_list, rv_chat); Log.e(TAG, "list_adapter, chat_adapter 업뎃"); // 화면 갱신
+
+
+                                // 모든 참여자 위치 마커 대입
+                                for(int i=0; i<clientList.size(); i++) { Log.e(TAG, "마커대입하느라 clientList for문 i :" + i); // 위에서는 스레드에러나서 따로 포문돌림. 어차피 clientList에서 재료 꺼내서 지도에 set하면 됨
+
+                                    Marker marker = new Marker();
+                                    marker.setPosition(new LatLng(clientList.get(i).getLat(), clientList.get(i).getLng())); //먼저
+                                    marker.setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+                                    marker.setIcon(OverlayImage.fromBitmap(clientList.get(i).getBitmap())); // url만으로는 마커에 아이콘을 넣을 수 없다.
+                                    clientList.get(i).setMarker(marker); // 위치 변경될 때마다 setMarker해주기
+
+                                }
+
+                            }
+                        });
+                    }
+
         }).start();
 
 
 
-        try { // UI 업뎃
-            Thread.sleep(500); // 시간차 때문에 sleep // 문제 : clientList를 스레드로 리턴받는터라 size가 반영이 안 됐음
 
-            // 마지막 입장한 참여자
-            ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
-
-            // 채팅창 업뎃
-            Chat chat = new Chat("", lastlyClient.getMsg(), ""); // 파라미터 3개 중 2개 비워두기
-            chat_items.add(chat); //리사이클러뷰와 연결된 배열에 추가. 결과적으로 리사이클러뷰에 보임
-
-            Log.e(TAG, "111 lastlyClient.getMsg() :" + lastlyClient.getMsg());
-            Log.e(TAG, "111 chat_items :" + chat_items);
-            Log.e(TAG, "111 clientList.size : "+ clientList.size());
-            Log.e(TAG, "111 chat_items.size : "+ chat_items.size());
-
-
-            roomName_num.setText(방이름+"("+clientList.size()+"명)"); // 방이름(n명)
-            recyclerviewUpdate_listAndChat(rv_list, rv_chat); // 화면 갱신
-
-            Log.e(TAG, "list_adapter, chat_adapter 업뎃");
-
-        } catch (InterruptedException e) { e.printStackTrace(); }
-
-
+        // 위치 업뎃 될 때마다 해당 이름
     }
 
     /** 서비스 시작 */
     private void startBindService() {
         Log.e(TAG, "startBindService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
+        Log.e(TAG, "socket : "+socket);
+        if (socket != null) Log.e(TAG, "socket.isClosed() : "+socket.isClosed());
+
 
         if (!isServiceRunning(getApplicationContext())) {
 
@@ -1122,14 +1163,19 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
+
     // 입장 후 ~ (1명씩 데이터 담기)
-    public ArrayList<ClientInfo> returnOneClient_명단reset(JSONArray jsonArray) throws JSONException { String TAG = "returnOneClient_입장() ";
+    public void returnOneClient_명단reset(JSONArray jsonArray) throws JSONException { String TAG = "returnOneClient_입장() ";
 
 
         ClientInfo client;
         clientList.clear();
         Log.e(TAG, "clientList.size : "+clientList.size());
 
+
+        //ㅡㅡㅡㅡ
+        // for문 : 한 명씩 다시 대입
+        //ㅡㅡㅡㅡ
         for(int i=0; i<jsonArray.length(); i++) { // 내가 이 방에 처음 입장했을 때 실행. 현재 참여중인 방참여자 모두 가져옴. 마커로 비교해서 없는 사람만 추가하기
 
             // 배열 안에 있는것도 JSON형식 이기 때문에 JSON Object 로 추출
@@ -1167,11 +1213,10 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         } // ~for()
 
-        Log.e(TAG, "clientList.size() : "+clientList.size());
+
+
         // 객체에 대입하면 객체 주소가 바뀐다!!!!!!! 주의 !!!!!!
-
-
-        return clientList; // 한 사람. 마지막으로 들어온 당사자 정보
+        // return clientList; // 한 사람. 마지막으로 들어온 당사자 정보
     }
 
     //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -1717,6 +1762,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         방이름 = null;
         방비번 = null;
         iamLeader = false;
+//        socket = null; // 소켓 널값 넣지 말기!
 
 
         //쉐어드 비우기 1
@@ -1812,9 +1858,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
-    private void 마커셋팅(NaverMap 네이버Map) {
-
-        Log.e(TAG, "마커셋팅() 들어옴 ");
+    private void 마커셋팅(NaverMap 네이버Map) { Log.e(TAG, "마커셋팅() 들어옴 ");
 
         //sttic변수로 담아둔 마커객체 다시 지도에 뿌리기
         for (int i=0; i<마커위도리스트.size(); i++) { //마커리스트가 null인 경우가 있어서 마커위도리스트를 기준으로 삼음
@@ -2199,7 +2243,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     protected void onRestart() { //다른액티비티 back하면 여기로 옴
         super.onRestart();
         Log.e(TAG, "onRestart ~~~~");
-//        위도경도Thread(); //마커찍는 스레드, 위치 다시 찾지 않는다.
+//        위도경도Thread(5); //마커찍는 스레드, 위치 다시 찾지 않는다.
 
         //a에서 b액티비티로 이동후 back하면 onRestart()로 들어옴
         //b에서 a로 다시 누르면 onCreate로 감

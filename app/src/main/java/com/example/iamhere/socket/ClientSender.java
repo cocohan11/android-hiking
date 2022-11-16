@@ -88,7 +88,7 @@ public class ClientSender extends Thread {
         // 시작하자마자 문자열 8개를 서버로 전송 (1번만)
         if (!socket.isClosed()) { // 소켓이 열려있다면
 
-            Log.e(TAG, "!socket.isClosed()"); // ok
+            Log.e(TAG, "!socket.isClosed() : "+socket); // ok
 
             pw.println(myEmail); // 이메일로 식별하기
             pw.println(myName); // 보낸 순서대로 받기

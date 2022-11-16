@@ -271,14 +271,18 @@ public class myService extends Service {
         }}.start();
     }
 
-    private void socketClose_Exit() { // 소켓 닫기, receive stream 닫기
+    static public void socketClose_Exit() { String TAG="socketClose_Exit() "; // 소켓 닫기, receive stream 닫기
 
         try {
             if (socket != null) {
 
-                Log.e(TAG, "* socket.isClosed() : "+socket.isClosed());
+                Log.e(TAG, "socket.isClosed() : "+socket);
+                Log.e(TAG, "socket.isClosed() 전: "+socket.isClosed());
                 socket.close(); // 소켓을 close해도 객체가 null인건 아니다다
                 br.close(); // sender는 어차피 일회성 객체라서 닫을 필요 없으
+                Log.e(TAG, "socket.isClosed() 후: "+socket.isClosed());
+                socket.shutdownInput();
+                socket.shutdownOutput();
 //                socket = null; // thread 가 멈추는게 아니라 에러남
 //                br = null;
 
