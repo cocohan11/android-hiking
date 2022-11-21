@@ -82,6 +82,7 @@ import com.example.iamhere.Model.Chat;
 import com.example.iamhere.Model.ClientInfo;
 import com.example.iamhere.Model.Markers_Players;
 import com.example.iamhere.Model.Sharing_room;
+import com.example.iamhere.Model.getMarker;
 import com.example.iamhere.Recyclerview.chat_Adapter;
 import com.example.iamhere.Recyclerview.sharingList_Adapter;
 //import com.example.iamhere.socket.ClientReceiver;
@@ -259,10 +260,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         if (!iamLeader) { Log.e(TAG, "iamLeader false 나는 참여자다 : "+iamLeader); // 참여자라면 앞의 단계 다 건너뛰기
 
-            //ㅡㅡㅡㅡㅡㅡㅡㅡ
-            // 마커찍는 스레드 : 참여자일 때(방장일 때도 따로 메소드 주기)
-            //ㅡㅡㅡㅡㅡㅡㅡㅡ
-//            위도경도Thread(5);
+            myRoomActive = true; // 입장했으니까 퇴장하기 전까지는 true
 
             //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
             // 순서 주의!! [ myRoom_no / 방장닉넴 ] 필요한 함수들 모음
@@ -536,70 +534,100 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             }
         });
 
-
         //ㅡㅡㅡㅡ
         // 방 퇴장 : 같은 방 자동재입장 X (비번입력하면 재입장은 가능하도록 할거임)
         //ㅡㅡㅡㅡ
-        btn_share_exit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) { Log.e(TAG, "2 모두에 대해 공유 종료 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
+        if (iamLeader) { // 방장
 
-                // 다이얼로그
-                dialog_leave = new AlertDialog.Builder(M_share_2_Map.this) // 현재 Activity의 이름 입력.
-                        .setMessage("\n                   방을 종료하시겠습니까?\n")
-                        .setNeutralButton("모두에 대해 공유 종료", new DialogInterface.OnClickListener() { //확인을 왼쪽에 해야 실수로 더블클릭하는 경우를 막을 수 있음
-                            public void onClick(DialogInterface dialog, int which){
-                                Log.e(TAG, "0 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
+            btn_share_exit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) { Log.e(TAG, "2 모두에 대해 공유 종료 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
 
-
-                                /******************* 소켓 (전송) : 단발적 ****************/
-                                new Thread() {
-                                    public void run() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
-                                        Log.e(TAG, "소켓 (전송) run()에 들어옴");
+                    // 다이얼로그
+                    dialog_leave = new AlertDialog.Builder(M_share_2_Map.this) // 현재 Activity의 이름 입력.
+                            .setMessage("\n                   방을 종료하시겠습니까?\n")
+                            .setNeutralButton("모두에 대해 방 종료", new DialogInterface.OnClickListener() { //확인을 왼쪽에 해야 실수로 더블클릭하는 경우를 막을 수 있음
+                                public void onClick(DialogInterface dialog, int which){
+                                    Log.e(TAG, "0 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
 
 
-                                        if (iamLeader) {
-                                            if (pw != null) {
+                                    /******************* 소켓 (전송) : 단발적 ****************/
+                                    new Thread() {
+                                        public void run() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
+                                            Log.e(TAG, "소켓 (전송) run()에 들어옴");
+
+                                                if (pw != null) {
+
+                                                    pw.println("강제종료");
+                                                    pw.flush();
 
 
-                                                pw.println("강제종료");
+                                                    Log.e(TAG, "1 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
+//                                                    socketClose_Exit(); // 소켓 끊기. 매번 방에 참여할 때마다 연결하기
+//                                                    stopBindService(getApplicationContext());
+
+                                                }
+                                                방퇴장처리(getApplicationContext()); // 에러날 때 사용하려고 추가 (서비스 콜백에 이미 있는 함수임)
+
+                                        }
+                                    }.start(); // 소켓 activity -> chatting Server -> service --callback--> activity
+                                    /*******************************************************/
+
+                                }
+                            })
+                            .setPositiveButton("        취소        ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
+                                public void onClick(DialogInterface dialog, int which){
+                                    Log.e(TAG, "취소 버튼 클릭");                }})
+                            .show();
+                }
+            });
+        } else { // 참여자
+
+            btn_share_exit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) { Log.e(TAG, "2 모두에 대해 공유 종료 버튼 클릭"); // 방장이 모든 참여자를 종료시킬 수 있다.
+
+                    // 다이얼로그
+                    dialog_leave = new AlertDialog.Builder(M_share_2_Map.this) // 현재 Activity의 이름 입력.
+                            .setMessage("\n                     방을 나가시겠습니까?\n")
+                            .setNeutralButton("     나가기     ", new DialogInterface.OnClickListener() { //확인을 왼쪽에 해야 실수로 더블클릭하는 경우를 막을 수 있음
+                                public void onClick(DialogInterface dialog, int which){
+                                    Log.e(TAG, "0 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
+
+
+                                    /******************* 소켓 (전송) : 단발적 ****************/
+                                    new Thread() {
+                                        public void run() { // Thread in Thread 가 아니라 나란히 스레드가 실행되는 것임.
+                                            Log.e(TAG, "소켓 (전송) run()에 들어옴");
+
+
+                                                Log.e(TAG, "iamLeader == false 인 경우 퇴장이라고 출력");
+                                                Log.e(TAG, "startBindService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
+
+                                                pw.println("퇴장");
                                                 pw.flush();
 
 
-                                                Log.e(TAG, "1 참여자 본인 화면 퇴장 처리 - clientList.size() : "+clientList.size());
-                                                socketClose_Exit(); // 소켓 끊기. 매번 방에 참여할 때마다 연결하기
-                                                stopBindService(getApplicationContext());
-                                                방퇴장처리(getApplicationContext());
-
-                                            } else {
-                                                방퇴장처리(getApplicationContext());
-                                            }
-                                        } else {
-                                            Log.e(TAG, "iamLeader == false 인 경우 퇴장이라고 출력");
-                                            Log.e(TAG, "startBindService() isServiceRunning false : "+isServiceRunning(getApplicationContext()));
-
-                                            pw.println("퇴장");
-                                            pw.flush();
+                                                방퇴장처리(getApplicationContext()); // 에러날 때 사용하려고 추가
 
 
-                                            방퇴장처리(getApplicationContext()); // 참여자 본인 화면 퇴장 처리
                                         }
+                                    }.start(); // 소켓 activity -> chatting Server -> service --callback--> activity
+                                    /*******************************************************/
+
+                                }
+                            })
+                            .setPositiveButton("        취소        ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
+                                public void onClick(DialogInterface dialog, int which){
+                                    Log.e(TAG, "취소 버튼 클릭");                }})
+                            .show();
+
+                }
+            });
+
+        }
 
 
-                                    }
-                                }.start(); // 소켓 activity -> chatting Server -> service --callback--> activity
-                                /*******************************************************/
-
-                            }
-                        })
-                        .setPositiveButton("       취소       ", new DialogInterface.OnClickListener() { //일부러 띄워쓰기 한거임. 간격조절
-                            public void onClick(DialogInterface dialog, int which){
-                                Log.e(TAG, "취소 버튼 클릭");                }})
-                        .show();
-
-
-            }
-        });
 
         //ㅡㅡㅡㅡㅡㅡㅡㅡ
         // 등산 시작버튼 : 누르면 시간이 카운트된다.
@@ -663,6 +691,10 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
         네이버Map = naverMap; //전역변수에 대입(스레드에서 쓰려고)
 
 
+        if (!iamLeader) retrofit마커get(네이버Map, myRoom_no); // 여기에 위치해야 함. 네이버Map객체에 값이 있을 때 마커찍기
+
+
+
         //런타임 권한
         Log.e(TAG, "런타임 권한을 맵에 지정");
         ActivityCompat.requestPermissions(M_share_2_Map.this, PERMISSIONS, LOCATION_PERMISSION_REQUEST_CODE); //현재위치 표시할 때 권한 확인(이미 M_main에서 통과됐기때문에 여기서는 런타임권한메소드 x)
@@ -702,7 +734,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             숨김_경로(); //3번
             보임_명단(); //1번
             보임_초록버튼(); //2번
-            보임_트래킹스타트(); //4번
+            숨김_트래킹스타트(); //4번
 
             Log.e(TAG, "마커리스트 변수가 비어있다느거야?" + 마커리스트);
             Log.e(TAG, "방이름" + 방이름);
@@ -718,12 +750,13 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 // 수신 : ArrayList위도, ArrayList경도
 
                 Log.e(TAG, "retrofit마커get() 마커리스트.size() == 0");
-                retrofit마커get(); //위도,경도 값을 arraylist<double>에 대입한다. (json to arraylist) //마커셋팅()포함되어있음
+                retrofit마커get(naverMap, myRoom_no); //방번호에 대한 경로마커 찍기 (test번호 바꾸기)
+//                retrofit마커get(); //위도,경도 값을 arraylist<double>에 대입한다. (json to arraylist) //마커셋팅()포함되어있음
 
             } else { //스태틱변수가 살아있을 때(어플살아있을 때) 들어온거라면, 바로 마커 찍기
 
                 Log.e(TAG, "retrofit마커get()  마커리스트.size() != 0");
-                마커셋팅(네이버Map); //파라미터로 현재펼쳐진 지도를 건내줘야 인식한다.
+//                마커셋팅(네이버Map); //파라미터로 현재펼쳐진 지도를 건내줘야 인식한다.
 
             }
 
@@ -983,9 +1016,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                 case myService.MSG_LOCATION:
 
                     Log.e(TAG, "위치 콜백");
-                    JSONObject jsonObject_위치 = (JSONObject) msg.obj; // 콜백받아서 형변환
-
-
+                    onePersonLocationUpdateOfMarker(msg.obj);
                     break;
 
 
@@ -1011,6 +1042,88 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         }
     }
+
+
+    private void onePersonLocationUpdateOfMarker(Object 위치object) { Log.e(TAG, "onePersonLocationUpdateOfMarker() 함수 입장");
+
+        JSONObject jsonObject_위치 = (JSONObject) 위치object; // 콜백받아서 형변환
+
+        runOnUiThread(new Runnable() {
+            public void run() {
+                try { Thread.sleep(300); // marker가 null일 때가 있어서 sleep주고 아래에 조건문에도 추가함
+
+                    String Email = (String) jsonObject_위치.get("email");
+                    double Lat = (double) jsonObject_위치.get("Lat");
+                    double Lng = (double) jsonObject_위치.get("Lng");
+
+                    Log.e(TAG, "onePersonLocationUpdateOfMarker() 변수 확인 " +
+                            "\nEmail : "+ Email+
+                            "\nLat : "+ Lat+
+                            "\nLng : "+ Lng+
+                            "\nclientList.size(): "+ clientList.size()
+                    );
+
+                    // 방금 받은 위치로 마커 삽입
+//                    Marker marker = new Marker();
+//                    marker.setPosition(new LatLng(Lat, Lng)); // 먼저
+//                    marker.setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+//                    marker.setIcon(OverlayImage.fromResource(R.drawable.pin_red)); // url만으로는 마커에 아이콘을 넣을 수 없다.
+
+//                    if (clientList.size() != 0) {
+//                        Log.e(TAG, "clientList.get(0).getMarker() : "+clientList.get(0).getMarker());
+//                        clientList.get(0).getMarker().setMap(null);
+//                        clientList.get(0).getMarker().setPosition(new LatLng(Lat, Lng)); // 먼저 (절대 빼먹으면 안됨..)
+//                        clientList.get(0).getMarker().setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+//                    }
+
+                    if (clientList.size() != 0) {
+                        for (int i=0; i<clientList.size(); i++) {  // 모든 참여자중에
+                            if (clientList.get(i).getEmail().equals(Email) && clientList.get(i).getMarker() != null) { Log.e(TAG, "이메일이 같은 사람만 찾음");
+
+                                // 기존 마커삭제 후 위치만 업뎃
+                                clientList.get(i).getMarker().setMap(null);
+                                clientList.get(i).getMarker().setPosition(new LatLng(Lat, Lng)); // 먼저 (절대 빼먹으면 안됨..)
+                                clientList.get(i).getMarker().setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+                            }
+                        }
+                    }
+
+                } catch (JSONException | InterruptedException e) { e.printStackTrace(); }
+            }
+        });
+    }
+
+//    // 퇴장한 사람 위치마커 삭제
+//    private void onePersonLocationRemoveOfMarker(String Email) { Log.e(TAG, "onePersonLocationRemoveOfMarker() 함수 입장");
+//
+//        runOnUiThread(new Runnable() {
+//            public void run() {
+//                try { Thread.sleep(300); // marker가 null일 때가 있어서 sleep주고 아래에 조건문에도 추가함
+//
+//
+//                    Log.e(TAG, "onePersonLocationRemoveOfMarker() 변수 확인 " +
+//                            "\nEmail : "+ Email+ // 이메일로 선별하여 clientList 마커에서 찾아내기
+//                            "\nclientList.size(): "+ clientList.size()
+//                    );
+//
+//
+//                    // 마커 삭제
+//                    if (clientList.size() != 0) {
+//                        for (int i=0; i<clientList.size(); i++) {  // 모든 참여자중에
+//                            if (clientList.get(i).getEmail().equals(Email) && clientList.get(i).getMarker() != null) { Log.e(TAG, "이메일이 같은 사람만 찾음");
+//
+//                                // 기존 마커삭제 후 위치만 업뎃
+//                                clientList.get(i).getMarker().setMap(null);
+//                                clientList.get(i).getMarker().setPosition(new LatLng(0, 0)); // 먼저 (절대 빼먹으면 안됨..)
+//                                clientList.get(i).getMarker().setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+//                            }
+//                        }
+//                    }
+//
+//                } catch (InterruptedException e) { e.printStackTrace(); }
+//            }
+//        });
+//    }
 
     public ClientInfo returnOneClient_입장외(JSONObject jsonObject) { String TAG = "returnOneClient_입장외()";
 
@@ -1067,19 +1180,54 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
                     try {
 
-                        returnOneClient_명단reset(jsonArray); // 참여자 명단 업뎃, 위치마커 설정
-                        Log.e(TAG, "1 입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
+
+                        // clientList 비우기 전에 기존위치마커 삭제하기
+                        JSONObject object_1개 = (JSONObject) jsonArray.get(jsonArray.length()-1);
+                        String 목적 = (String) object_1개.get("purposes"); Log.e(TAG, "clientList 비우기 전에 마커 삭제하기 / 목적(퇴장/입장) :" + 목적);
+                        Log.e(TAG, clientList.size()+"개 111 / clientList  : "+clientList);
+
+
+                        if (목적.equals("퇴장")) {  Log.e(TAG, "if (목적.equals(\"퇴장\"))"); // 기존 마커삭제 후 위치만 업뎃
+
+                            runOnUiThread(new Runnable() { // UI건드니까 에런남
+                                public void run() { Log.e(TAG, "runOnUiThread() 퇴장");
+                                    Log.e(TAG, clientList.size()+"개 222 / clientList : "+clientList);
+
+                                    for(int i=0; i<clientList.size(); i++) { Log.e(TAG, "for문 i :" + i); // 위에서는 스레드에러나서 따로 포문돌림. 어차피 clientList에서 재료 꺼내서 지도에 set하면 됨
+
+//                                        clientList.get(0).getMarker().setIcon(OverlayImage.fromResource(R.drawable.pin_red));
+                                        clientList.get(i).getMarker().setMap(null);
+//                                        clientList.get(i).getMarker().setPosition(new LatLng(0, 0)); // 먼저 (절대 빼먹으면 안됨..)
+//                                        clientList.get(i).getMarker().setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+                                    }
+                                }
+                            });
+
+                        }
+
+                        // 참여자 명단 업뎃, 위치마커 설정
+                        try {
+                            Thread.sleep(500); // returnOneClient_명단reset() 메소드와 runOnUiThread()에서의 clientList때문에 에러남. 간격둠
+                            returnOneClient_명단reset(jsonArray); // clientList.size 변경이 일어남
+                            Log.e(TAG, "1 입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
 
                     } catch (JSONException e) { e.printStackTrace();
                     } finally { // try가 끝난 뒤 무조건 실행되는 UI 변경
+
                         runOnUiThread(new Runnable() {
                             public void run() {
 //                                try { Thread.sleep(500); } catch (InterruptedException e) { e.printStackTrace(); } // 위 스레드가 끝나기도 전에 실행되서 sleep줌
 
 
-                                // 마지막 입장한 참여자
+                                // 마지막 입장/퇴장한 참여자
                                 Log.e(TAG, "2 입장/퇴장 clientList : "+clientList.size()+"개 "+clientList); // 확인!! 리턴받은 clientList인지 확인하기
                                 ClientInfo lastlyClient = clientList.get(clientList.size()-1); // 방금 입장한 참여자를 UI메소드에 보낸다.
+
 
 
                                 // 채팅창 데이터 추가
@@ -1097,13 +1245,18 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
 
                                 // 모든 참여자 위치 마커 대입
-                                for(int i=0; i<clientList.size(); i++) { Log.e(TAG, "마커대입하느라 clientList for문 i :" + i); // 위에서는 스레드에러나서 따로 포문돌림. 어차피 clientList에서 재료 꺼내서 지도에 set하면 됨
+                                if (lastlyClient.getPurposes().equals("입장")) {
 
-                                    Marker marker = new Marker();
-                                    marker.setPosition(new LatLng(clientList.get(i).getLat(), clientList.get(i).getLng())); //먼저
-                                    marker.setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
-                                    marker.setIcon(OverlayImage.fromBitmap(clientList.get(i).getBitmap())); // url만으로는 마커에 아이콘을 넣을 수 없다.
-                                    clientList.get(i).setMarker(marker); // 위치 변경될 때마다 setMarker해주기
+                                    for(int i=0; i<clientList.size(); i++) { Log.e(TAG, "마커대입하느라 clientList for문 i :" + i); // 위에서는 스레드에러나서 따로 포문돌림. 어차피 clientList에서 재료 꺼내서 지도에 set하면 됨
+
+                                        Marker marker = new Marker();
+                                        marker.setPosition(new LatLng(clientList.get(i).getLat(), clientList.get(i).getLng())); //먼저
+                                        marker.setMap(네이버Map); // 주의) 메인스레드에서 하라고 에러남
+                                        marker.setIcon(OverlayImage.fromBitmap(clientList.get(i).getBitmap())); // url만으로는 마커에 아이콘을 넣을 수 없다.
+                                        clientList.get(i).setMarker(marker); // 위치 변경될 때마다 setMarker해주기
+
+                                        Log.e(TAG, "모든 참여자 위치 마커 대입 marker 같은거 꺼내오는지 보기 : "+marker);
+                                    }
 
                                 }
 
@@ -1113,7 +1266,9 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
 
         }).start();
 
-
+//                            marker.setMap(null); //기존마커 없앤다
+//                            marker.setPosition(new LatLng(위도, 경도)); //먼저
+//                            marker.setMap(네이버Map); //다시 대입한다
 
 
         // 위치 업뎃 될 때마다 해당 이름
@@ -1139,7 +1294,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     /** 서비스 종료 */
     public void stopBindService(Context context) {
 //        Log.e(TAG, "stopLocationService() socket : "+socket);
-        Log.e(TAG, "stopLocationService() isServiceRunning : "+isServiceRunning(context));
+        Log.e(TAG, "stopBindService() isServiceRunning : "+isServiceRunning(context));
 //        Log.e(TAG, "stopLocationService() socket.isClosed()  "+socket.isClosed());
 
         if (isServiceRunning(context)) {
@@ -1167,10 +1322,10 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     // 입장 후 ~ (1명씩 데이터 담기)
     public void returnOneClient_명단reset(JSONArray jsonArray) throws JSONException { String TAG = "returnOneClient_입장() ";
 
-
         ClientInfo client;
-        clientList.clear();
+        clientList.clear(); // 비우고 통째로 채우기
         Log.e(TAG, "clientList.size : "+clientList.size());
+
 
 
         //ㅡㅡㅡㅡ
@@ -1195,7 +1350,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
             Log.e(TAG,  "\n변수 확인 jsonObject.. " +
                     "\njsonArray.length() : " + jsonArray.length() +
                     "\npurposes : " + purposes +
-                    "\nemail : " + email +
+                    "\n퇴장한 사람의 이메일 : " + email +
                     "\nImg : " + Img +
                     "\nmarkerImg : " + markerImg +
                     "\nmsg : " + msg +
@@ -1203,6 +1358,7 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
                     "\nchatFrom : " + chatFrom +
                     "\nLat : " + Lat +
                     "\nLng : " + Lng);
+
 
 
             // 안드에서 가지고있는 명단 vs 채팅서버에서 가져온 이멜 비교
@@ -1446,57 +1602,93 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
-    private void retrofit마커get() {
+    private void retrofit마커get(NaverMap naverMap, String myRoom_no) {
 
-        //에러 뜨길래 gson추가 //Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 1 path $
-        Gson gson = new GsonBuilder()
-                .setLenient()
-                .create();
+        Log.e(TAG, "retrofit마커get() 메소드 입장// myRoom_no : "+myRoom_no);
 
-        //레트로핏 객체 생성, 빌드
-        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder() //Retrofit 인스턴스 생성
-                .baseUrl("http://15.164.129.103/")  //baseUrl 등록
-                .addConverterFactory(GsonConverterFactory.create(gson))  //http통신시에 주고받는 데이터형태를 변환시켜주는 컨버터를 지정한다. Gson, Jackson 등이 있다. Gson 변환기 등록
-                .client(createOkHttpClient()) //네트워크 통신 로그보기(서버로 주고받는 파라미터)
-                .build();
-
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        // 마커 위도경도값 가져오기
-        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        //보내기 : 방번호
-        Sharing SharingRoomCreate = retrofit.create(Sharing.class);   // 레트로핏 인터페이스 객체 구현
-        Call<Sharing_room> call = SharingRoomCreate.markerArraylistGet(myRoom_no); //방번호만 보내도 테이블에서 위도경도값 찾아옴
+        Sharing 마커불러오기 = retrofit객체().create(Sharing.class);   // Sharing라는 interface에서 recyclerviewRecord()메소드로 보낸다.
+        Call<ArrayList<getMarker>> call = 마커불러오기.markerArraylistGet2(myRoom_no); // Call<ArrayList<getMarker>> : 데이터를 받아오는 곳
 
 
         //네트워킹 시도
-        call.enqueue(new Callback<Sharing_room>() { //enqueue : 비동기식 통신을 할 때 사용/ execute: 동기식
-            @SuppressLint("SetTextI18n")
+        call.enqueue(new Callback<ArrayList<getMarker>>() { //enqueue : 비동기식 통신을 할 때 사용/ execute: 동기식
+            @SuppressLint({"SetTextI18n", "NotifyDataSetChanged", "ClickableViewAccessibility"})
             @Override
-            public void onResponse(Call<Sharing_room> call, Response<Sharing_room> response) {
+            public void onResponse(Call<ArrayList<getMarker>> call, @NonNull Response<ArrayList<getMarker>> response) {
 
-                Log.e(TAG, "retrofit마커get() 결과");
+                Log.e(TAG, "성공..? response : "+response);
+                Log.e(TAG, "response.body()..? : "+response.body());
 
-                Sharing_room result = response.body();
-                String str위도값들 = result.getarrLat(); //["37.4827142710659","37.48222882555662","37.48086743405399"]
-                String str경도값들 = result.getarrLng();
+                //ㅡㅡㅡㅡㅡㅡㅡㅡ
+                // 응답받은 배열
+                //ㅡㅡㅡㅡㅡㅡㅡㅡ
+                ArrayList<getMarker> items = response.body(); //대입하는 순간 SerializedName에 따라 이름따라 값이 들어가짐 !! 중요
+                Log.e(TAG, "getMarker타입 items.get(0).getArrLat() : "+items.get(0).getArrLat()); // 37.48503839980235
+                Log.e(TAG, "getMarker타입 items.get(0).getArrLng() : "+items.get(0).getArrLng());
 
-                Log.e(TAG, "result " + result); //toString을 가져와버리네?
-                Log.e(TAG, "result.getLat() " + result.getarrLat()); //에러 >> 배열을 json으로 바꿔서 담음
-                Log.e(TAG, "result.getarrLng() " + result.getarrLng()); //에러 >> 배열을 json으로 바꿔서 담음
-
-
-                위도경도jsonToArraylist(str위도값들, str경도값들); //스태틱에 위도,경도값 대입함
-                마커셋팅(네이버Map); //가져온 위도경도 값으로 마커찍음 //비활성화..되어있겠지?
+                마커셋팅(naverMap, items); //지도뷰에 마커삽입
 
             }
 
             @Override
-            public void onFailure(Call<Sharing_room> call, Throwable t) {
-                Log.e("onFailure... : ", t.getMessage());
+            public void onFailure(Call<ArrayList<getMarker>> call, Throwable t) {
+                Log.e("onFailure : ", t.getMessage());
             }
         });
 
     }
+
+//    private void retrofit마커get() {
+//
+//        //에러 뜨길래 gson추가 //Use JsonReader.setLenient(true) to accept malformed JSON at line 1 column 1 path $
+//        Gson gson = new GsonBuilder()
+//                .setLenient()
+//                .create();
+//
+//        //레트로핏 객체 생성, 빌드
+//        retrofit2.Retrofit retrofit = new retrofit2.Retrofit.Builder() //Retrofit 인스턴스 생성
+//                .baseUrl("http://15.164.129.103/")  //baseUrl 등록
+//                .addConverterFactory(GsonConverterFactory.create(gson))  //http통신시에 주고받는 데이터형태를 변환시켜주는 컨버터를 지정한다. Gson, Jackson 등이 있다. Gson 변환기 등록
+//                .client(createOkHttpClient()) //네트워크 통신 로그보기(서버로 주고받는 파라미터)
+//                .build();
+//
+//        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+//        // 마커 위도경도값 가져오기
+//        //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+//        //보내기 : 방번호
+//        Sharing SharingRoomCreate = retrofit.create(Sharing.class);   // 레트로핏 인터페이스 객체 구현
+//        Call<Sharing_room> call = SharingRoomCreate.markerArraylistGet(myRoom_no); //방번호만 보내도 테이블에서 위도경도값 찾아옴
+//
+//
+//        //네트워킹 시도
+//        call.enqueue(new Callback<Sharing_room>() { //enqueue : 비동기식 통신을 할 때 사용/ execute: 동기식
+//            @SuppressLint("SetTextI18n")
+//            @Override
+//            public void onResponse(Call<Sharing_room> call, Response<Sharing_room> response) {
+//
+//                Log.e(TAG, "retrofit마커get() 결과");
+//
+//                Sharing_room result = response.body();
+//                String str위도값들 = result.getarrLat(); //["37.4827142710659","37.48222882555662","37.48086743405399"]
+//                String str경도값들 = result.getarrLng();
+//
+//                Log.e(TAG, "result " + result); //toString을 가져와버리네?
+//                Log.e(TAG, "result.getLat() " + result.getarrLat()); //에러 >> 배열을 json으로 바꿔서 담음
+//                Log.e(TAG, "result.getarrLng() " + result.getarrLng()); //에러 >> 배열을 json으로 바꿔서 담음
+//
+//
+//                위도경도jsonToArraylist(str위도값들, str경도값들); //스태틱에 위도,경도값 대입함
+//                마커셋팅(네이버Map); //가져온 위도경도 값으로 마커찍음 //비활성화..되어있겠지?
+//
+//            }
+//
+//            @Override
+//            public void onFailure(Call<Sharing_room> call, Throwable t) {
+//                Log.e("onFailure... : ", t.getMessage());
+//            }
+//        });
+//
+//    }
 
     // 1. 방을 생성한다.
     // 2. 마커의 위경도를 RouteMarker테이블에 저장한다.
@@ -1858,21 +2050,43 @@ public class M_share_2_Map extends AppCompatActivity implements OnMapReadyCallba
     }
 
 
-    private void 마커셋팅(NaverMap 네이버Map) { Log.e(TAG, "마커셋팅() 들어옴 ");
+//    private void 마커셋팅(NaverMap 네이버Map) { Log.e(TAG, "마커셋팅() 들어옴 ");
+//
+//        //sttic변수로 담아둔 마커객체 다시 지도에 뿌리기
+//        for (int i=0; i<마커위도리스트.size(); i++) { //마커리스트가 null인 경우가 있어서 마커위도리스트를 기준으로 삼음
+//
+//            Log.e(TAG, "마커셋팅() i : "+i);
+//
+//            Marker marker = new Marker(); //다시 마커객체 생성해서 다시 위치에 삽입함
+//            marker.setPosition(new LatLng(마커위도리스트.get(i), 마커경도리스트.get(i))); //static변수로 액티비티가 파괴되어도 사용할 수 있게함
+////            marker.setPosition(new LatLng(마커위도리스트.get(i), 마커경도리스트.get(i))); //static변수로 액티비티가 파괴되어도 사용할 수 있게함
+//            marker.setWidth(90);
+//            marker.setHeight(90);
+//            marker.setMap(네이버Map); //다시 대입한다 /해야 보임
+//            routeNum.setText(String.valueOf(i+1)); //인덱스+1해야 자연수가 나옴
+//            marker.setIcon(OverlayImage.fromView(routeNum)); //숫자먼저 set하고 뷰를 삽입한다.
+//        }
+//
+//    }
 
-        //sttic변수로 담아둔 마커객체 다시 지도에 뿌리기
-        for (int i=0; i<마커위도리스트.size(); i++) { //마커리스트가 null인 경우가 있어서 마커위도리스트를 기준으로 삼음
+
+    //서버에서 받아온 위도경도를 지도에 뷰로 뿌리기
+    private void 마커셋팅(NaverMap naverMap, ArrayList<getMarker> 위도경도리스트) {
+
+        Log.e(TAG, "마커셋팅() 들어옴 ");
+
+        for (int i=0; i<위도경도리스트.size(); i++) { //마커리스트가 null인 경우가 있어서 마커위도리스트를 기준으로 삼음
 
             Log.e(TAG, "마커셋팅() i : "+i);
 
             Marker marker = new Marker(); //다시 마커객체 생성해서 다시 위치에 삽입함
-            marker.setPosition(new LatLng(마커위도리스트.get(i), 마커경도리스트.get(i))); //static변수로 액티비티가 파괴되어도 사용할 수 있게함
-//            marker.setPosition(new LatLng(마커위도리스트.get(i), 마커경도리스트.get(i))); //static변수로 액티비티가 파괴되어도 사용할 수 있게함
+            marker.setPosition(new LatLng(위도경도리스트.get(i).getArrLat(), 위도경도리스트.get(i).getArrLng())); //static변수로 액티비티가 파괴되어도 사용할 수 있게함
             marker.setWidth(90);
             marker.setHeight(90);
-            marker.setMap(네이버Map); //다시 대입한다 /해야 보임
+            marker.setMap(naverMap); //다시 대입한다 /해야 보임
             routeNum.setText(String.valueOf(i+1)); //인덱스+1해야 자연수가 나옴
             marker.setIcon(OverlayImage.fromView(routeNum)); //숫자먼저 set하고 뷰를 삽입한다.
+
         }
 
     }

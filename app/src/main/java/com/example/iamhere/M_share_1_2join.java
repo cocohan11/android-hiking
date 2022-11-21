@@ -110,8 +110,11 @@ public class M_share_1_2join extends AppCompatActivity {
                 Log.e(TAG, "response.body().getUserNickName() : " + response.body().getUserNickName());
 
 
-                //유효한 방이 존재하면 위치공유방 지도로 이동(참여)
-                if(!response.body().getResponse().equals("1개가아님")) { //해당하는 방 갯수가 1개 존재한다면(유일하다면)
+                if (response.body().getResponse().equals("이미시작한방")) { // 이미 운동 시작 함. 못 들어감
+
+                    Toast.makeText(getApplicationContext(), "이미 운동을 시작한 방입니다.", Toast.LENGTH_SHORT).show();
+
+                } else if (response.body().getUserNickName() != null ){ // 방장이름이 있다면 == 입장 성공
 
                     Log.e(TAG, "입장 가능");
                     Toast.makeText(getApplicationContext(), "해당 위치공유방에 입장합니다.", Toast.LENGTH_SHORT).show();
@@ -123,7 +126,6 @@ public class M_share_1_2join extends AppCompatActivity {
 
 
                     //위치공유방 지도로 이동
-//                    Intent intent = new Intent(M_share_1_2join.this, M_share_3_join_Map.class); //참여자는 M_share_3_join_Map 위치공유방에 입장
                     Intent intent = new Intent(M_share_1_2join.this, M_share_2_Map.class); //참여자는 M_share_3_join_Map 위치공유방에 입장
                     intent.putExtra("방장닉넴", response.body().getUserNickName());
                     Log.e(TAG, "입장 가능");
@@ -131,16 +133,12 @@ public class M_share_1_2join extends AppCompatActivity {
                     startActivity(intent); //플래그로 스택정리 안 한다. 지도3에서 뒤로가기 누를 때 플래그로 처리할 예정
                     Log.e(TAG, "startActivity()");
 
-
-
                 } else {
 
-                    Log.e(TAG, "입장 불가능.. 없어진 방이다.");
                     Toast.makeText(getApplicationContext(), "유효한 방이 아닙니다.", Toast.LENGTH_SHORT).show();
-
                 }
 
-            }
+            } // ~onResponse()
 
             @Override
             public void onFailure(Call<Sharing_room> call, Throwable t) {

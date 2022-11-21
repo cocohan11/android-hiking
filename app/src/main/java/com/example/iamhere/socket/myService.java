@@ -73,7 +73,7 @@ public class myService extends Service {
 
 
     // 기타
-    static public final int 모든위치업뎃_sec = 20;
+    static public final int 모든위치업뎃_sec = 5;
     static public String h시간m분s초; //서버에 보낼 시간분초 문자열. 조회할 때 조작없이 바로 보여질 데이터다
 
     // callback arraylist
@@ -251,7 +251,7 @@ public class myService extends Service {
                             case "강제종료":
                                 msg_5가지중한개 = Message.obtain(null, myService.MSG_FINISH_ROOM);
                                 msg_5가지중한개.obj = jsonObject;
-                                socketClose_Exit();
+//                                socketClose_Exit();
                                 break;
 
 
@@ -278,7 +278,7 @@ public class myService extends Service {
 
                 Log.e(TAG, "socket.isClosed() : "+socket);
                 Log.e(TAG, "socket.isClosed() 전: "+socket.isClosed());
-                socket.close(); // 소켓을 close해도 객체가 null인건 아니다다
+//                socket.close(); // 소켓을 close해도 객체가 null인건 아니다다
                 br.close(); // sender는 어차피 일회성 객체라서 닫을 필요 없으
                 Log.e(TAG, "socket.isClosed() 후: "+socket.isClosed());
                 socket.shutdownInput();

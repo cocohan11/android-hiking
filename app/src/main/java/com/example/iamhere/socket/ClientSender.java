@@ -4,6 +4,7 @@ import static com.example.iamhere.L_login.myEmail;
 import static com.example.iamhere.L_login.myImg;
 import static com.example.iamhere.L_login.myMarkerImg;
 import static com.example.iamhere.L_login.myName;
+import static com.example.iamhere.L_login.myRoomActive;
 import static com.example.iamhere.L_login.myRoom_no;
 import static com.example.iamhere.M_share_2_Map.isServiceRunning;
 import static com.example.iamhere.socket.myService.pw;
@@ -55,7 +56,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
 public class ClientSender extends Thread {
 
-    String TAG = "ClientSender.class";
+    private String TAG = "ClientSender.class";
+    private Context mContext;
 
     // 생성자. 방장과 참여자 두 곳에서 사용 됨
     public ClientSender() {
@@ -103,11 +105,12 @@ public class ClientSender extends Thread {
 
         }
 
-
+        ;
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
         // 위치 전송 (마커용)
         //ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-        while (!socket.isClosed()) { // 채팅방에서 나가도 계속 반복되어서 조건문을 소켓이 열리는경우만으로 바꿈 // 반복문이라 맨 뒤로 뺐음
+        Log.e(TAG, "11 위치 전송 thread while() 직전 myRoomActive : "+myRoomActive);
+        while (myRoomActive) { // 채팅방에서 나가도 계속 반복되어서 조건문을 소켓이 열리는경우만으로 바꿈 // 반복문이라 맨 뒤로 뺐음
 
             try {
 
@@ -121,6 +124,7 @@ public class ClientSender extends Thread {
 
                 Thread.sleep(모든위치업뎃_sec*1000); // n초마다 위치를 전송한다.
                 Log.e(TAG, "송신...while 위도 : "+위도+ ", 경도 : "+경도);
+                Log.e(TAG, "22 위치 전송 thread while() 직전 myRoomActive : "+myRoomActive);
 
 
             } catch (InterruptedException e) {
